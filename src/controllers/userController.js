@@ -4,6 +4,7 @@ const User = require('../models/User');
 exports.createUser = async (req, res) => {
   try {
     const user = new User(req.body);
+    user.edo = true; // Asignar directamente al objeto user
     await user.save();
     res.status(201).json(user);
   } catch (error) {
@@ -53,12 +54,17 @@ exports.updateUser = async (req, res) => {
 // Eliminar un usuario por ID
 exports.deleteUser = async (req, res) => {
   try {
-    const user = await User.findByIdAndDelete(req.params.id);
-    if (!user) {
+    const result = await User.updateOne(
+      { _id: req.params.id }, 
+      { edo: false } 
+    );
+    // Verificar si se actualizó algún documento
+    if (result.matchedCount === 0) {
       return res.status(404).json({ error: 'Usuario no encontrado' });
     }
-    res.status(200).json({ message: 'Usuario eliminado correctamente' });
+    res.status(200).json({ message: 'Usuario desactivado correctamente' });
   } catch (error) {
+    // Manejar errores
     res.status(500).json({ error: error.message });
   }
 };

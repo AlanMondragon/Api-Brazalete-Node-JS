@@ -2,6 +2,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 const userRoutes = require('./routes/userRoutes');
+const medicationRoutes = require('./routes/MedicationRoutes');
 
 // Cargar variables de entorno desde .env
 dotenv.config();
@@ -20,22 +21,20 @@ const dbName = process.env.DBNAME;
 
 const mongoUri = `mongodb+srv://${dbUser}:${dbPassword}@${dbHostname}/${dbName}?retryWrites=true&w=majority`;
 
-mongoose.connect(mongoUri, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-})
-.then(() => console.log('Conectado a MongoDB Atlas'))
-.catch((err) => console.error('Error conectando a MongoDB:', err));
+mongoose.connect(mongoUri) // Elimina las opciones obsoletas
+  .then(() => console.log('Conectado a MongoDB Atlas'))
+  .catch((err) => console.error('Error conectando a MongoDB:', err));
 
 // Rutas
-app.use('/api', userRoutes);
+app.use('/brazalete', userRoutes);
+app.use('/brazalete', medicationRoutes);
 
 // Ruta de prueba
 app.get('/', (req, res) => {
-    res.send('API de usuarios con MongoDB Atlas');
+  res.send('API de usuarios con MongoDB Atlas');
 });
 
 // Iniciar el servidor
 app.listen(port, () => {
-    console.log(`Servidor corriendo en http://localhost:${port}`);
+  console.log(`Servidor corriendo en http://localhost:${port}`);
 });

@@ -10,6 +10,10 @@ const medicationSchema = new mongoose.Schema({
     description  : {
         type : String,
         required : [true, 'La descripcion es obligatoria']
+    },
+    edo : {
+        type : Boolean,
+        required : [true, "Es necesario el estado"]
     }
 
 })

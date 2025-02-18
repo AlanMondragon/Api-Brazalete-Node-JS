@@ -21,6 +21,10 @@ const userSchema = new mongoose.Schema({
       values: ["admin", "keeper"],
       message: 'El rol debe ser "admin" o "keeper"'
     }
+  },
+  edo : {
+    type : Boolean,
+    required : [true, "El estado es obligatorio"]
   }
 }, { timestamps: true });
 
