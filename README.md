@@ -8,4 +8,7 @@ Un repositorio para un proyecto de un brazalete que gestiona alarmas
 -npm install
 -npm run dev
 
+-- Importante---
+npm install bcrypt dotenv express jsonwebtoken mongoose
+
 ya eso es todo
