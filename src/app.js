@@ -3,6 +3,8 @@ const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 const userRoutes = require('./routes/userRoutes');
 const medicationRoutes = require('./routes/MedicationRoutes');
+const { loginUser } = require('./token/authController');
+const authMiddleware = require('./token/authMiddleware'); // Importar el middleware
 
 // Cargar variables de entorno desde .env
 dotenv.config();
@@ -21,15 +23,18 @@ const dbName = process.env.DBNAME;
 
 const mongoUri = `mongodb+srv://${dbUser}:${dbPassword}@${dbHostname}/${dbName}?retryWrites=true&w=majority`;
 
-mongoose.connect(mongoUri) // Elimina las opciones obsoletas
+mongoose.connect(mongoUri)
   .then(() => console.log('Conectado a MongoDB Atlas'))
   .catch((err) => console.error('Error conectando a MongoDB:', err));
 
-// Rutas
-app.use('/brazalete', userRoutes);
-app.use('/brazalete', medicationRoutes);
+// Ruta de login (pública)
+app.post('/login', loginUser);
 
-// Ruta de prueba
+// Protejo todo
+app.use('/brazalete', authMiddleware(['admin']), userRoutes); // Proteger todas las rutas de usuarios
+app.use('/brazalete', authMiddleware(['admin', 'keeper']), medicationRoutes); // Proteger todas las rutas de medicamentos
+
+// Ruta de prueba (pública)
 app.get('/', (req, res) => {
   res.send('API de usuarios con MongoDB Atlas');
 });
