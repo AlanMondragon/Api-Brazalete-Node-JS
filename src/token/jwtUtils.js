@@ -1,4 +1,5 @@
 const jwt = require('jsonwebtoken');
+const dotenv = require('dotenv');
 
 const generateToken = (user) => {
   const payload = {
@@ -8,7 +9,7 @@ const generateToken = (user) => {
   };
 
   //Para que se genere y el tiempo de duración
-  const token = jwt.sign(payload, 'Ubuntu_Servlet', { expiresIn: '1h' });
+  const token = jwt.sign(payload, process.env.SECRETKEY , { expiresIn: '1h' });
 
   return token;
 };

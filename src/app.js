@@ -31,6 +31,7 @@ mongoose.connect(mongoUri)
 app.post('/login', loginUser);
 
 // Protejo todo
+app.post('/brazalete', authMiddleware(['admin']), userRoutes)
 app.use('/brazalete', authMiddleware(['admin']), userRoutes); // Proteger todas las rutas de usuarios
 app.use('/brazalete', authMiddleware(['admin', 'keeper']), medicationRoutes); // Proteger todas las rutas de medicamentos
 

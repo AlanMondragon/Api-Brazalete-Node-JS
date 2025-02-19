@@ -12,7 +12,7 @@ const authMiddleware = (allowedRoles) => {
 
     try {
       // Verificar y decodificar el token
-      const decoded = jwt.verify(token.replace('Bearer ', ''), 'Ubuntu_Servlet');
+      const decoded = jwt.verify(token.replace('Bearer ', ''), process.env.SECRETKEY);
 
       // Verificar si el rol del usuario está permitido
       if (!allowedRoles.includes(decoded.rol)) {
