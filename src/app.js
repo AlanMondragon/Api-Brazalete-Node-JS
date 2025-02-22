@@ -3,6 +3,8 @@ const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 const userRoutes = require('./routes/userRoutes');
 const medicationRoutes = require('./routes/MedicationRoutes');
+const braceletRoutes = require('./routes/BraceletRouters')
+const reminderRouter = require('./routes/RedimerRouters')
 const { loginUser } = require('./token/authController');
 const authMiddleware = require('./token/authMiddleware'); // Importar el middleware
 
@@ -31,9 +33,14 @@ mongoose.connect(mongoUri)
 app.post('/login', loginUser);
 
 // Protejo todo
-app.post('/brazalete', authMiddleware(['admin']), userRoutes)
-app.use('/brazalete', authMiddleware(['admin']), userRoutes); // Proteger todas las rutas de usuarios
-app.use('/brazalete', authMiddleware(['admin', 'keeper']), medicationRoutes); // Proteger todas las rutas de medicamentos
+app.use('/user', authMiddleware(['admin']), userRoutes); // Proteger todas las rutas de usuarios
+app.use('/medication', authMiddleware(['admin', 'keeper']), medicationRoutes); // Proteger todas las rutas de medicamentos
+
+// Proteger las rutas de pulseras
+app.use('/bracelet', authMiddleware(['keeper','admin']), braceletRoutes);
+
+// Para los recordatorios
+app.use('/reminder',authMiddleware(['keeper','admin']), reminderRouter);
 
 // Ruta de prueba (pública)
 app.get('/', (req, res) => {

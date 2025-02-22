@@ -22,6 +22,9 @@ exports.getUsers = async (req, res) => {
   }
 };
 
+//Por email
+
+
 // Obtener un usuario por ID
 exports.getUserById = async (req, res) => {
   try {
