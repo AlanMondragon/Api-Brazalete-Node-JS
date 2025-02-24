@@ -32,15 +32,16 @@ mongoose.connect(mongoUri)
 // Ruta de login (pública)
 app.post('/login', loginUser);
 
+app.use('/api', userRoutes);
+
 // Protejo todo
-app.use('/user', authMiddleware(['admin']), userRoutes); // Proteger todas las rutas de usuarios
-app.use('/medication', authMiddleware(['admin', 'keeper']), medicationRoutes); // Proteger todas las rutas de medicamentos
+app.use('/api', authMiddleware(['admin', 'keeper']), medicationRoutes); // Proteger todas las rutas de medicamentos
 
 // Proteger las rutas de pulseras
-app.use('/bracelet', authMiddleware(['keeper','admin']), braceletRoutes);
+app.use('/api', authMiddleware(['keeper','admin']), braceletRoutes);
 
 // Para los recordatorios
-app.use('/reminder',authMiddleware(['keeper','admin']), reminderRouter);
+app.use('/api',authMiddleware(['keeper','admin']), reminderRouter);
 
 // Ruta de prueba (pública)
 app.get('/', (req, res) => {
