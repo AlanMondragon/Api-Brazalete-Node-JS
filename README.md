@@ -3,12 +3,4 @@ Un repositorio para un proyecto de un brazalete que gestiona alarmas
 
 
 #Pasos de intalacion
-
--Lit pones
--npm install
--npm run dev
-
--- Importante---
-npm install bcrypt dotenv express jsonwebtoken mongoose
-
-ya eso es todo
+https://www.notion.so/Gu-a-para-usar-el-Api-Node-1a4184dfcdd480049445ec77eb4c4a09?pvs=4
