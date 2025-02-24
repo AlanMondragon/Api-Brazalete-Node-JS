@@ -1,4 +1,6 @@
 const User = require('../models/User');
+const Reminder = require("../models/Reminder");
+
 
 // Crear un usuario
 exports.createUser = async (req, res) => {
@@ -21,8 +23,6 @@ exports.getUsers = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
-
-//Por email
 
 
 // Obtener un usuario por ID

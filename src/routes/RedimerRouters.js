@@ -20,4 +20,10 @@ router.put('/reminder/:id/deactivate', reminderController.deactivateReminder);
 // Eliminar un recordatorio por ID
 router.delete('/reminder/:id', reminderController.deleteReminder);
 
+// Ruta para obtener los recordatorios con detalles de usuario, medicamento y pulsera
+router.get("/reminders", reminderController.getRemindersWithDetails);
+
+// Ruta para obtener recordatorios por ID de usuario
+router.get("/reminders/user/:userId", reminderController.getRemindersByUserId);
+
 module.exports = router;
