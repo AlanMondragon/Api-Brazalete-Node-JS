@@ -6,7 +6,7 @@ const Reminder = require("../models/Reminder");
 exports.createUser = async (req, res) => {
   try {
     const user = new User(req.body);
-    user.edo = true; // Asignar directamente al objeto user
+    user.edo = true;
     await user.save();
     res.status(201).json(user);
   } catch (error) {

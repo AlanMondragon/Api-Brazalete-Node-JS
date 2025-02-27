@@ -1,7 +1,9 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
+const AutoIncrement = require('mongoose-sequence')(mongoose);
 
 const userSchema = new mongoose.Schema({
+  _id: { type: Number },
   name: { 
     type: String, 
     required: [true, 'El nombre es obligatorio'] 
@@ -27,30 +29,38 @@ const userSchema = new mongoose.Schema({
       message: 'El rol debe ser "admin" o "keeper"'
     }
   },
-  edo : {
-    type : Boolean,
-    required : [true, "El estado es obligatorio"]
+  edo: {
+    type: Boolean,
+    required: [true, "El estado es obligatorio"],
+    default: true
+  },
+  edaReq: {
+    type: Boolean,
+    default: false
   }
 }, { timestamps: true });
 
-// Hashear la contraseña antes de guardar el usuario
 userSchema.pre('save', async function (next) {
-  if (!this.isModified('password')) return next(); // Si no se modifica la contraseña, no hacer nada
-  const salt = await bcrypt.genSalt(10); // Generar un salt
-  this.password = await bcrypt.hash(this.password, salt); // Hashear la contraseña
-  next();
+  if (!this.isModified('password')) return next();
+  try {
+    const salt = await bcrypt.genSalt(10);
+    this.password = await bcrypt.hash(this.password, salt);
+    next();
+  } catch (err) {
+    next(err);
+  }
 });
 
-// Método para comparar contraseñas
 userSchema.methods.comparePassword = async function (candidatePassword) {
-  return await bcrypt.compare(candidatePassword, this.password); // Comparar contraseñas hasheadas
+  return await bcrypt.compare(candidatePassword, this.password);
 };
 
-// No devolver la contraseña en las respuestas JSON
 userSchema.methods.toJSON = function () {
   const user = this.toObject();
   delete user.password;
   return user;
 };
+
+userSchema.plugin(AutoIncrement, { inc_field: '_id', start_seq: 1 });
 
 module.exports = mongoose.model('User', userSchema);

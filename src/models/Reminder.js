@@ -1,6 +1,8 @@
 const mongoose = require('mongoose');
+const AutoIncrement = require('mongoose-sequence')(mongoose);
 
 const reminderSchema = new mongoose.Schema({
+    _id: { type: Number },
     inicio: {
         type: Date,
     },
@@ -30,10 +32,13 @@ const reminderSchema = new mongoose.Schema({
         ref: 'Bracelet', // Referencia al modelo de pulsera
         required: [true, "El ID de la pulsera es necesario"],
     },
-    edo : {
-        type : Boolean,
-        required : [true, "El estado es obligatorio"]
+    edo: {
+        type: Boolean,
+        required: [true, "El estado es obligatorio"]
     }
-});
+}, { timestamps: true }); 
+
+
+reminderSchema.plugin(AutoIncrement, { inc_field: '_id', start_seq: 1 });
 
 module.exports = mongoose.model('Reminder', reminderSchema);
