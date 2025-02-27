@@ -61,6 +61,9 @@ userSchema.methods.toJSON = function () {
   return user;
 };
 
-userSchema.plugin(AutoIncrement, { inc_field: '_id', start_seq: 1 });
-
+userSchema.plugin(AutoIncrement, { 
+  inc_field: '_id', 
+  id: 'user_seq', // Nombre único para la secuencia de User
+  start_seq: 1 
+});
 module.exports = mongoose.model('User', userSchema);

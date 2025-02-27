@@ -18,7 +18,9 @@ const medicationSchema = new mongoose.Schema({
     }
 }, { timestamps: true }); // Opcional: agregar timestamps
 
-// Aplicar el plugin para auto-incrementar el campo _id, iniciando en 1
-medicationSchema.plugin(AutoIncrement, { inc_field: '_id', start_seq: 1 });
-
+medicationSchema.plugin(AutoIncrement, { 
+    inc_field: '_id', 
+    id: 'medication_seq', // Nombre único para la secuencia de Medication
+    start_seq: 1 
+});
 module.exports = mongoose.model('Medication', medicationSchema);

@@ -1,24 +1,28 @@
 const mongoose = require('mongoose');
-const AutoIncrement = require('mongoose-sequence')(mongoose); // Importar y configurar
+const AutoIncrement = require('mongoose-sequence')(mongoose);
 
-const medicationSchema = new mongoose.Schema({
+const braceletSchema = new mongoose.Schema({
     _id: { type: Number }, // Definir _id como Number para que sea autoincremental
+    // Otros campos del esquema Bracelet
     nombre: {
         type: String,
-        required: [true, 'El nombre es obligatorio'],
-        unique: true
+        required: [true, 'El nombre es obligatorio']
     },
-    description: {
+    descripcion: {
         type: String,
-        required: [true, 'La descripcion es obligatoria']
+        required: [true, 'La descripción es obligatoria']
     },
     edo: {
         type: Boolean,
-        required: [true, "Es necesario el estado"]
+        required: [true, 'El estado es obligatorio']
     }
-}, { timestamps: true }); // Opcional: agregar timestamps
+}, { timestamps: true });
 
-// Aplicar el plugin para auto-incrementar el campo _id, iniciando en 1
-medicationSchema.plugin(AutoIncrement, { inc_field: '_id', start_seq: 1 });
+// Aplicar el plugin con un nombre único para la secuencia
+braceletSchema.plugin(AutoIncrement, { 
+    inc_field: '_id', 
+    id: 'bracelet_seq', // Nombre único para la secuencia de Bracelet
+    start_seq: 1 
+});
 
-module.exports = mongoose.model('Medication', medicationSchema);
+module.exports = mongoose.model('Bracelet', braceletSchema);

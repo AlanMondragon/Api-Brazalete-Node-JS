@@ -39,6 +39,9 @@ const reminderSchema = new mongoose.Schema({
 }, { timestamps: true }); 
 
 
-reminderSchema.plugin(AutoIncrement, { inc_field: '_id', start_seq: 1 });
-
+reminderSchema.plugin(AutoIncrement, { 
+    inc_field: '_id', 
+    id: 'reminder_seq', // Nombre único para la secuencia de Reminder
+    start_seq: 1 
+});
 module.exports = mongoose.model('Reminder', reminderSchema);
