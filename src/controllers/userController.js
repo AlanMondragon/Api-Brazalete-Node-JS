@@ -1,12 +1,12 @@
 const User = require('../models/User');
 const Reminder = require("../models/Reminder");
 
-
 // Crear un usuario
 exports.createUser = async (req, res) => {
   try {
     const user = new User(req.body);
     user.edo = true;
+    user.edoReq = false; // Corregido: estaba mal escrito como "edaReq"
     await user.save();
     res.status(201).json(user);
   } catch (error) {
@@ -14,16 +14,31 @@ exports.createUser = async (req, res) => {
   }
 };
 
-// Obtener todos los usuarios
-exports.getUsers = async (req, res) => {
-  try {
-    const users = await User.find();
+// Solicitudes de cuidadores
+exports.getLisKeeper = async (req, res) => {
+  try {  
+    const users = await User.find(
+      { edoReq: false, edo: true , rol: 'keeper' },  
+      { email: 1, phone: 1, name: 1, _id: 0 } 
+    );
     res.status(200).json(users);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: error.message }); 
   }
 };
 
+// Obtener todos los usuarios
+exports.getUsers = async (req, res) => {
+  try {
+    const users = await User.find(
+      { edoReq: true, edo: true }, 
+      { email: 1, phone: 1, name: 1, _id: 0 } 
+    );
+    res.status(200).json(users);
+  } catch (error) {
+    res.status(500).json({ error: error.message }); 
+  }
+};
 
 // Obtener un usuario por ID
 exports.getUserById = async (req, res) => {
@@ -54,20 +69,24 @@ exports.updateUser = async (req, res) => {
   }
 };
 
-// Eliminar un usuario por ID
-exports.deleteUser = async (req, res) => {
+// Desactivar un usuario por ID (Desactivado lógico)
+exports.deactivateUser = async (req, res) => {
   try {
-    const result = await User.updateOne(
-      { _id: req.params.id }, 
-      { edo: false } 
+    const { id } = req.params; 
+    const user = await User.findByIdAndUpdate(
+      id,
+      { edo: false }, 
+      { new: true, runValidators: true } 
     );
-    // Verificar si se actualizó algún documento
-    if (result.matchedCount === 0) {
+
+    if (!user) {
       return res.status(404).json({ error: 'Usuario no encontrado' });
     }
-    res.status(200).json({ message: 'Usuario desactivado correctamente' });
+
+    res.status(200).json({ message: 'Usuario desactivado correctamente', user });
   } catch (error) {
-    // Manejar errores
-    res.status(500).json({ error: error.message });
+    res.status(400).json({ error: error.message });
   }
 };
+
+module.exports = exports;

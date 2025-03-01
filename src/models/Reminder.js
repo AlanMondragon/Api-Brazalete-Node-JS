@@ -9,6 +9,10 @@ const reminderSchema = new mongoose.Schema({
     fin: {
         type: Date
     },
+    time : {
+        type: Number,
+    }
+    ,
     nombre_paciente: {
         type: String,
         required: [true, "El nombre del paciente es necesario"],

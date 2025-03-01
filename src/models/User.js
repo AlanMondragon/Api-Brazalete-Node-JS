@@ -34,7 +34,7 @@ const userSchema = new mongoose.Schema({
     required: [true, "El estado es obligatorio"],
     default: true
   },
-  edaReq: {
+  edoReq: {
     type: Boolean,
     default: false
   }

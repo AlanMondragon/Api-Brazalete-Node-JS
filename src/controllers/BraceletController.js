@@ -3,10 +3,9 @@ const Bracelet = require('../models/Bracelet');
 // Crear una pulsera
 exports.createBracelet = async (req, res) => {
     try {
-        const bracelet = new Bracelet(req.body);
-        bracelet.edo = true; // Asignar directamente al objeto bracelet
-        await bracelet.save();
-        res.status(201).json(bracelet);
+          const bracelet = new Bracelet(req.body)
+          bracelet.edo = true;
+          await bracelet.save();
     } catch (error) {
         res.status(400).json({ error: error.message });
     }
@@ -15,7 +14,9 @@ exports.createBracelet = async (req, res) => {
 // Obtener todas las pulseras
 exports.getBracelets = async (req, res) => {
     try {
-        const bracelets = await Bracelet.find();
+        const bracelets = await Bracelet.find({
+            edo : true
+        });
         res.status(200).json(bracelets);
     } catch (error) {
         res.status(500).json({ error: error.message });
