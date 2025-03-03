@@ -34,9 +34,14 @@ const userSchema = new mongoose.Schema({
     required: [true, "El estado es obligatorio"],
     default: true
   },
+  /*
+    0 = Pendientes
+    1 = Aceptados
+    2 = Rechazados
+  */
   edoReq: {
-    type: Boolean,
-    default: false
+    type: Number,
+    default: 0
   }
 }, { timestamps: true });
 
