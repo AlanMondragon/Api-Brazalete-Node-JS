@@ -1,6 +1,5 @@
 const User = require('../models/User');
 const { generateToken } = require('./jwtUtils');
-require('dotenv').config(); // Cargar variables de entorno
 
 // Iniciar sesión
 const loginUser = async (req, res) => {
@@ -30,4 +29,4 @@ const loginUser = async (req, res) => {
   }
 };
 
-module.exports = { loginUser };
+module.exports = { loginUser }; // Exportar la función

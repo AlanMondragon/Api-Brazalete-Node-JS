@@ -1,5 +1,4 @@
 const express = require('express');
-const cors = require();      
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 const userRoutes = require('./routes/userRoutes');
@@ -53,3 +52,6 @@ app.get('/', (req, res) => {
 app.listen(port, () => {
   console.log(`Servidor corriendo en http://localhost:${port}`);
 });
+
+
+//linea cambio bro
