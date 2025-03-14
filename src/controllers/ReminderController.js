@@ -2,17 +2,84 @@ const Reminder = require('../models/Reminder');
 const mqtt = require('mqtt')
 const { ObjectId } = require("mongodb"); // Importar ObjectId
 
-// Crear un recordatorio
+const MQTT_BROKER = "mqtt://54.84.167.153:1883"; // Cambia a la IP de tu broker si está en otro servidor
+const MQTT_TOPIC = "reminders/notify"; // Tema MQTT para notificar
+
+const client = mqtt.connect(MQTT_BROKER);
+
+client.on("connect", () => {
+  console.log("📡 Conectado a MQTT Broker!");
+});
+
+client.on("error", (err) => {
+  console.error("🚨 Error en MQTT:", err);
+});
+
+
+
+client.subscribe("reminders/confirm", (err) => {
+  if (err) {
+    console.error("❌ Error al suscribirse al tema MQTT");
+  } else {
+    console.log("📥 Suscrito a reminders/confirm");
+  }
+});
+
+client.on("message", (topic, message) => {
+  console.log(`📩 Mensaje recibido en ${topic}:`, message.toString());
+});
+
+
+
+
+
+
+//Crear medicamento
 exports.createReminder = async (req, res) => {
-    try {
-        const reminder = new Reminder(req.body);
-        reminder.edo = true; // Por defecto, el estado es true (activo)
-        await reminder.save();
-        res.status(201).json(reminder);
-    } catch (error) {
-        res.status(400).json({ error: error.message });
-    }
+  try {
+      const reminder = new Reminder(req.body);
+      reminder.edo = true;
+      await reminder.save();
+
+      // 📌 Consultar directamente el nombre del medicamento con `aggregate()`
+      const reminderWithMed = await Reminder.aggregate([
+          { $match: { _id: reminder._id } },
+          {
+              $lookup: {
+                  from: "medications",
+                  localField: "id_medicamento",
+                  foreignField: "_id",
+                  as: "medicamento"
+              }
+          },
+          { $unwind: "$medicamento" },
+          {
+              $project: {
+                  nombre_paciente: 1,
+                  nombre_medicamento: "$medicamento.nombre", // Extraer solo el nombre
+                  inicio: 1,
+                  fin: 1
+              }
+          }
+      ]);
+
+      // 📡 Publicar mensaje MQTT con el nombre del medicamento
+      const message = JSON.stringify(reminderWithMed[0]); // `aggregate` devuelve un array, por eso accedemos con `[0]`
+
+      client.publish(MQTT_TOPIC, message, { qos: 1 }, (err) => {
+          if (err) {
+              console.error("❌ Error al publicar en MQTT:", err);
+          } else {
+              console.log("✅ Mensaje MQTT enviado:", message);
+          }
+      });
+
+      res.status(201).json(reminderWithMed[0]);
+  } catch (error) {
+      res.status(400).json({ error: error.message });
+  }
 };
+
 
 // Todos
 exports.getRemindersWithDetails = async (req, res) => {
