@@ -33,9 +33,7 @@ exports.getLisKeeper = async (req, res) => {
   try {  
     const users = await User.find(
       { edoReq: 2, edo: true , rol: 'keeper' },  
-      { email: 1, phone: 1, name: 1 } 
-      { edoReq: 0, edo: true , rol: 'keeper' },  
-      { email: 1, phone: 1, name: 1, _id: 0 } 
+      { email: 1, phone: 1, name: 1 },
     );
     res.status(200).json(users);
   } catch (error) {
@@ -48,8 +46,6 @@ exports.getUsers = async (req, res) => {
   try {
     const users = await User.find(
       { edoReq: true, edo: true }, 
-      { email: 1, phone: 1, name: 1 } 
-      { edoReq: 1, edo: true }, 
       { email: 1, phone: 1, name: 1, _id: 0 } 
     );
     res.status(200).json(users);
