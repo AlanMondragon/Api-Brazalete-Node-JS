@@ -27,6 +27,19 @@ exports.getLisKeeper = async (req, res) => {
   }
 };
 
+// Solicitudes de cuidadores Rechazados
+exports.getLisKeeper = async (req, res) => {
+  try {  
+    const users = await User.find(
+      { edoReq: 2, edo: true , rol: 'keeper' },  
+      { email: 1, phone: 1, name: 1 } 
+    );
+    res.status(200).json(users);
+  } catch (error) {
+    res.status(500).json({ error: error.message }); 
+  }
+};
+
 // Obtener todos los usuarios
 exports.getUsers = async (req, res) => {
   try {

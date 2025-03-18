@@ -138,8 +138,7 @@ exports.getRemindersWithDetails = async (req, res) => {
             "usuario.rol": 1,
             inicio: 1,
             fin: 1,
-            cronico: 1,
-            _id: 0
+            cronico: 1
           }
         }
       ]);

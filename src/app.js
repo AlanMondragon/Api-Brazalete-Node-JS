@@ -11,7 +11,7 @@ const authMiddleware = require('./token/authMiddleware'); // Importar el middlew
 
 // Cargar variables de entorno desde .env
 dotenv.config();
-const app = express();
+const app = express();      
 const port = process.env.PORT || 3000;
 app.use(cors());
 
