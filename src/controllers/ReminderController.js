@@ -2,7 +2,8 @@ const Reminder = require('../models/Reminder');
 const mqtt = require('mqtt')
 const { ObjectId } = require("mongodb"); // Importar ObjectId
 const moment = require('moment');
-const MQTT_BROKER = "mqtt://54.84.167.153:1883"; // Cambia a la IP de tu broker si está en otro servidor
+
+const MQTT_BROKER = "mqtt://34.239.121.96:1883"; // Cambia a la IP de tu broker si está en otro servidor
 const MQTT_TOPIC = "reminders/notify"; // Tema MQTT para notificar
 
 const client = mqtt.connect(MQTT_BROKER);
@@ -28,10 +29,6 @@ client.subscribe("reminders/confirm", (err) => {
 client.on("message", (topic, message) => {
   console.log(`📩 Mensaje recibido en ${topic}:`, message.toString());
 });
-
-
-
-
 
 
 //Crear recordatorio
@@ -203,8 +200,7 @@ exports.getRemindersWithDetails = async (req, res) => {
             "usuario.rol": 1,
             inicio: 1,
             fin: 1,
-            cronico: 1,
-            _id: 0
+            cronico: 1
           }
         }
       ]);
