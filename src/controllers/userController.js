@@ -6,6 +6,7 @@ exports.createUser = async (req, res) => {
   try {
     const user = new User(req.body);
     user.edo = true;
+    user.edoReq = false;
     user.edoReq = 0;
     await user.save();
     res.status(201).json(user);
@@ -19,6 +20,21 @@ exports.getLisKeeper = async (req, res) => {
   try {  
     const users = await User.find(
       { edoReq: 0, edo: true , rol: 'keeper' },  
+      { email: 1, phone: 1, name: 1 } 
+    );
+    res.status(200).json(users);
+  } catch (error) {
+    res.status(500).json({ error: error.message }); 
+  }
+};
+
+// Solicitudes de cuidadores Rechazados
+exports.getLisKeeper = async (req, res) => {
+  try {  
+    const users = await User.find(
+      { edoReq: 2, edo: true , rol: 'keeper' },  
+      { email: 1, phone: 1, name: 1 } 
+      { edoReq: 0, edo: true , rol: 'keeper' },  
       { email: 1, phone: 1, name: 1, _id: 0 } 
     );
     res.status(200).json(users);
@@ -31,6 +47,8 @@ exports.getLisKeeper = async (req, res) => {
 exports.getUsers = async (req, res) => {
   try {
     const users = await User.find(
+      { edoReq: true, edo: true }, 
+      { email: 1, phone: 1, name: 1 } 
       { edoReq: 1, edo: true }, 
       { email: 1, phone: 1, name: 1, _id: 0 } 
     );
@@ -122,6 +140,26 @@ exports.deactivateUser = async (req, res) => {
     res.status(200).json({ message: 'Usuario desactivado correctamente', user });
   } catch (error) {
     res.status(400).json({ error: error.message });
+  }
+};
+
+// Admisión de keepers
+exports.acceptRequest = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const user = await User.findByIdAndUpdate(
+      id,
+      { edo: true, edoReq: 1 }, // Fusionamos los cambios en un solo objeto
+      { new: true, runValidators: true } // Opciones correctas
+    );
+
+    if (!user) {
+      return res.status(404).json({ error: "Usuario no encontrado" });
+    }
+
+    res.status(200).json({ message: "Usuario aceptado", user });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
 };
 

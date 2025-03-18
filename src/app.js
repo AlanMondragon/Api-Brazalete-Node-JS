@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require();      
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
+const cors = require('cors')
 const userRoutes = require('./routes/userRoutes');
 const medicationRoutes = require('./routes/MedicationRoutes');
 const braceletRoutes = require('./routes/BraceletRouters')
@@ -11,9 +12,9 @@ const authMiddleware = require('./token/authMiddleware'); // Importar el middlew
 
 // Cargar variables de entorno desde .env
 dotenv.config();
-
-const app = express();
+const app = express();      
 const port = process.env.PORT || 3000;
+app.use(cors());
 
 // Middleware para parsear JSON
 app.use(express.json());

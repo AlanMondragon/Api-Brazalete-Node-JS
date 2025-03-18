@@ -1,17 +1,103 @@
 const Reminder = require('../models/Reminder');
+const mqtt = require('mqtt')
 const { ObjectId } = require("mongodb"); // Importar ObjectId
+const moment = require('moment');
 
-// Crear un recordatorio
+const MQTT_BROKER = "mqtt://34.239.121.96:1883"; // Cambia a la IP de tu broker si está en otro servidor
+const MQTT_TOPIC = "reminders/notify"; // Tema MQTT para notificar
+
+const client = mqtt.connect(MQTT_BROKER);
+
+client.on("connect", () => {
+  console.log("📡 Conectado a MQTT Broker!");
+});
+
+client.on("error", (err) => {
+  console.error("🚨 Error en MQTT:", err);
+});
+
+
+
+client.subscribe("reminders/confirm", (err) => {
+  if (err) {
+    console.error("❌ Error al suscribirse al tema MQTT");
+  } else {
+    console.log("📥 Suscrito a reminders/confirm");
+  }
+});
+
+client.on("message", (topic, message) => {
+  console.log(`📩 Mensaje recibido en ${topic}:`, message.toString());
+});
+
+
+//Crear recordatorio
 exports.createReminder = async (req, res) => {
-    try {
-        const reminder = new Reminder(req.body);
-        reminder.edo = true; // Por defecto, el estado es true (activo)
-        await reminder.save();
-        res.status(201).json(reminder);
-    } catch (error) {
-        res.status(400).json({ error: error.message });
-    }
+  try {
+      const reminder = new Reminder(req.body);
+      reminder.edo = true; // Estado activo
+      await reminder.save();
+
+      // 📌 Consultar directamente el nombre del medicamento con `aggregate()`
+      const reminderWithMed = await Reminder.aggregate([
+          { $match: { _id: reminder._id } },
+          {
+              $lookup: {
+                  from: "medications",
+                  localField: "id_medicamento",
+                  foreignField: "_id",
+                  as: "medicamento"
+              }
+          },
+          { $unwind: "$medicamento" },
+          {
+              $project: {
+                  nombre_paciente: 1,
+                  nombre_medicamento: "$medicamento.nombre",
+                  inicio: 1,
+                  fin: 1,
+                  time: 1 // Intervalo de tomas en horas
+              }
+          }
+      ]);
+
+      if (!reminderWithMed.length) {
+          return res.status(404).json({ error: "Recordatorio no encontrado" });
+      }
+
+      // 📅 Calcular la cantidad de tomas basado en `time`
+      const inicio = moment(reminderWithMed[0].inicio);
+      const fin = moment(reminderWithMed[0].fin);
+      const intervaloHoras = reminderWithMed[0].time || 9; // `time` del modelo define el intervalo
+
+      const diferenciaHoras = fin.diff(inicio, 'hours'); // Diferencia total en horas
+      const totalTomas = Math.floor(diferenciaHoras / intervaloHoras) + 1; // Se suma 1 para incluir la primera toma
+
+      // 📡 Publicar mensaje MQTT con la cantidad de tomas
+      const message = JSON.stringify({
+          ...reminderWithMed[0],
+          total_tomas: totalTomas
+      });
+
+      client.publish(MQTT_TOPIC, message, { qos: 1 }, (err) => {
+          if (err) {
+              console.error("❌ Error al publicar en MQTT:", err);
+          } else {
+              console.log("✅ Mensaje MQTT enviado:", message);
+          }
+      });
+
+      res.status(201).json({
+          ...reminderWithMed[0],
+          total_tomas: totalTomas
+      });
+
+  } catch (error) {
+      res.status(400).json({ error: error.message });
+  }
 };
+
+
 
 // Todos
 exports.getRemindersWithDetails = async (req, res) => {
@@ -52,8 +138,7 @@ exports.getRemindersWithDetails = async (req, res) => {
             "usuario.rol": 1,
             inicio: 1,
             fin: 1,
-            cronico: 1,
-            _id: 0
+            cronico: 1
           }
         }
       ]);
@@ -114,8 +199,7 @@ exports.getRemindersWithDetails = async (req, res) => {
             "usuario.rol": 1,
             inicio: 1,
             fin: 1,
-            cronico: 1,
-            _id: 0
+            cronico: 1
           }
         }
       ]);

@@ -6,10 +6,7 @@ const authMiddleware = require('../token/authMiddleware');
 // Crear un usuario: ruta pública, sin verificación de token
 router.post('/users', userController.createUser);
 
-// Eliminar (desactivar) un usuario: solo 'admin' puede eliminar
-router.get('/users/listKeepers', authMiddleware(['admin']), userController.getLisKeeper);
-
-// Obtener todos los usuarios: 'admin' y 'keeper' pueden acceder
+// Obtener todos los usuarios activos
 router.get('/users', authMiddleware(['admin', 'keeper']), userController.getUsers);
 
 // Obtener un usuario por ID: 'admin' y 'keeper' pueden acceder
