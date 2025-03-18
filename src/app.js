@@ -1,5 +1,5 @@
 const express = require('express');
-const cors = require();      
+const cors = require('cors');      
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 const cors = require('cors')
@@ -18,6 +18,7 @@ app.use(cors());
 
 // Middleware para parsear JSON
 app.use(express.json());
+
 
 // Conectar a MongoDB
 const dbUser = process.env.DBUSER;
