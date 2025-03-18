@@ -1,7 +1,7 @@
 const Reminder = require('../models/Reminder');
 const mqtt = require('mqtt')
 const { ObjectId } = require("mongodb"); // Importar ObjectId
-
+const moment = require('moment');
 const MQTT_BROKER = "mqtt://54.84.167.153:1883"; // Cambia a la IP de tu broker si está en otro servidor
 const MQTT_TOPIC = "reminders/notify"; // Tema MQTT para notificar
 
@@ -34,11 +34,11 @@ client.on("message", (topic, message) => {
 
 
 
-//Crear medicamento
+//Crear recordatorio
 exports.createReminder = async (req, res) => {
   try {
       const reminder = new Reminder(req.body);
-      reminder.edo = true;
+      reminder.edo = true; // Estado activo
       await reminder.save();
 
       // 📌 Consultar directamente el nombre del medicamento con `aggregate()`
@@ -56,15 +56,31 @@ exports.createReminder = async (req, res) => {
           {
               $project: {
                   nombre_paciente: 1,
-                  nombre_medicamento: "$medicamento.nombre", // Extraer solo el nombre
+                  nombre_medicamento: "$medicamento.nombre",
                   inicio: 1,
-                  fin: 1
+                  fin: 1,
+                  time: 1 // Intervalo de tomas en horas
               }
           }
       ]);
 
-      // 📡 Publicar mensaje MQTT con el nombre del medicamento
-      const message = JSON.stringify(reminderWithMed[0]); // `aggregate` devuelve un array, por eso accedemos con `[0]`
+      if (!reminderWithMed.length) {
+          return res.status(404).json({ error: "Recordatorio no encontrado" });
+      }
+
+      // 📅 Calcular la cantidad de tomas basado en `time`
+      const inicio = moment(reminderWithMed[0].inicio);
+      const fin = moment(reminderWithMed[0].fin);
+      const intervaloHoras = reminderWithMed[0].time || 9; // `time` del modelo define el intervalo
+
+      const diferenciaHoras = fin.diff(inicio, 'hours'); // Diferencia total en horas
+      const totalTomas = Math.floor(diferenciaHoras / intervaloHoras) + 1; // Se suma 1 para incluir la primera toma
+
+      // 📡 Publicar mensaje MQTT con la cantidad de tomas
+      const message = JSON.stringify({
+          ...reminderWithMed[0],
+          total_tomas: totalTomas
+      });
 
       client.publish(MQTT_TOPIC, message, { qos: 1 }, (err) => {
           if (err) {
@@ -74,11 +90,16 @@ exports.createReminder = async (req, res) => {
           }
       });
 
-      res.status(201).json(reminderWithMed[0]);
+      res.status(201).json({
+          ...reminderWithMed[0],
+          total_tomas: totalTomas
+      });
+
   } catch (error) {
       res.status(400).json({ error: error.message });
   }
 };
+
 
 
 // Todos
