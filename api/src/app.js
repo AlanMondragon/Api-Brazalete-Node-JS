@@ -1,5 +1,4 @@
 const express = require('express');
-const cors = require('cors');      
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 const userRoutes = require('./routes/userRoutes');
@@ -11,13 +10,12 @@ const authMiddleware = require('./token/authMiddleware'); // Importar el middlew
 
 // Cargar variables de entorno desde .env
 dotenv.config();
-const app = express();      
+
+const app = express();
 const port = process.env.PORT || 3000;
-app.use(cors());
 
 // Middleware para parsear JSON
 app.use(express.json());
-
 
 // Conectar a MongoDB
 const dbUser = process.env.DBUSER;
@@ -54,3 +52,6 @@ app.get('/', (req, res) => {
 app.listen(port, () => {
   console.log(`Servidor corriendo en http://localhost:${port}`);
 });
+
+
+//linea cambio bro

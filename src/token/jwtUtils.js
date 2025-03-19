@@ -1,5 +1,5 @@
 const jwt = require('jsonwebtoken');
-const dotenv = require('dotenv');
+require('dotenv').config(); // Cargar variables de entorno
 
 const generateToken = (user) => {
   const payload = {
@@ -8,10 +8,9 @@ const generateToken = (user) => {
     rol: user.rol
   };
 
-  //Para que se genere y el tiempo de duración
-  const token = jwt.sign(payload, process.env.SECRETKEY , { expiresIn: '1h' });
+  const token = jwt.sign(payload, process.env.SECRETKEY, { expiresIn: '1h', algorithm: 'HS256' });
 
   return token;
 };
 
-module.exports = { generateToken }; // Exportar la función
+module.exports = { generateToken };
