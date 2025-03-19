@@ -1,10 +1,12 @@
 const Reminder = require('../models/Reminder');
 const mqtt = require('mqtt')
+const dotenv = require('dotenv');
 const { ObjectId } = require("mongodb"); // Importar ObjectId
 const moment = require('moment');
+dotenv.config();
 
-const MQTT_BROKER = "mqtt://34.239.121.96:1883"; // Cambia a la IP de tu broker si está en otro servidor
-const MQTT_TOPIC = "reminders/notify"; // Tema MQTT para notificar
+const MQTT_BROKER = process.env.MQTTIP; // Cambia a la IP de tu broker si está en otro servidor
+let MQTT_TOPIC = "reminders/notify"; // Tema MQTT para notificar
 
 const client = mqtt.connect(MQTT_BROKER);
 
@@ -18,7 +20,7 @@ client.on("error", (err) => {
 
 
 
-client.subscribe("reminders/confirm", (err) => {
+client.subscribe("reminders/confirm/#", (err) => {
   if (err) {
     console.error("❌ Error al suscribirse al tema MQTT");
   } else {
@@ -28,14 +30,35 @@ client.subscribe("reminders/confirm", (err) => {
 
 client.on("message", (topic, message) => {
   console.log(`📩 Mensaje recibido en ${topic}:`, message.toString());
+
+  // Obtén el id_pulsera quitando "m/" del principio del topic
+  const id_pulsera = topic.substring(2);  
+  console.log("ID Pulsera:", id_pulsera);
+
+  const message = message;
+exports.updateTimes = async (res, req) => {
+  try{
+    const reminder = await Reminder.findByIdAndUpdate(id,
+      {
+        $set : { tiempo : message.toJSON.wait } 
+      }
+    ) 
+
+
+  }catch(e){
+
+  }
+}
+
 });
+
 
 
 //Crear recordatorio
 exports.createReminder = async (req, res) => {
   try {
       const reminder = new Reminder(req.body);
-      reminder.edo = true; // Estado activo
+      reminder.edo = true; 
       await reminder.save();
 
       // 📌 Consultar directamente el nombre del medicamento con `aggregate()`
@@ -78,6 +101,8 @@ exports.createReminder = async (req, res) => {
           ...reminderWithMed[0],
           total_tomas: totalTomas
       });
+
+      MQTT_TOPIC = MQTT_TOPIC + reminder.id_pulsera
 
       client.publish(MQTT_TOPIC, message, { qos: 1 }, (err) => {
           if (err) {
