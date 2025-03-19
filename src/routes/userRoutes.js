@@ -9,6 +9,7 @@ router.post('/users', userController.createUser);
 // Obtener todos los usuarios activos
 router.get('/users', authMiddleware(['admin', 'keeper']), userController.getUsers);
 
+//Lista de keepers
 router.get('/users/listKeepers', authMiddleware(['admin', 'keeper']), userController.getLisKeeper)
 
 // Obtener un usuario por ID: 'admin' y 'keeper' pueden acceder

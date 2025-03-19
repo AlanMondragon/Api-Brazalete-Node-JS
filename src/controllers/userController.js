@@ -29,7 +29,7 @@ exports.getLisKeeper = async (req, res) => {
 };
 
 // Solicitudes de cuidadores Rechazados
-exports.getLisKeeper = async (req, res) => {
+exports.getListDenyKeeper = async (req, res) => {
   try {  
     const users = await User.find(
       { edoReq: 2, edo: true , rol: 'keeper' },  

@@ -7,7 +7,6 @@ dotenv.config();
 
 const MQTT_BROKER = process.env.MQTTIP; // Cambia a la IP de tu broker si está en otro servidor
 let MQTT_TOPIC = "reminders/notify"; // Tema MQTT para notificar
-
 const client = mqtt.connect(MQTT_BROKER);
 
 client.on("connect", () => {
@@ -35,7 +34,6 @@ client.on("message", (topic, message) => {
   const id_pulsera = topic.substring(2);  
   console.log("ID Pulsera:", id_pulsera);
 
-  const message = message;
 exports.updateTimes = async (res, req) => {
   try{
     const reminder = await Reminder.findByIdAndUpdate(id,
@@ -101,7 +99,7 @@ exports.createReminder = async (req, res) => {
           ...reminderWithMed[0],
           total_tomas: totalTomas
       });
-
+   
       MQTT_TOPIC = MQTT_TOPIC + reminder.id_pulsera
 
       client.publish(MQTT_TOPIC, message, { qos: 1 }, (err) => {
