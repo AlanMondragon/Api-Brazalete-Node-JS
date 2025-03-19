@@ -10,7 +10,7 @@ router.post('/users', userController.createUser);
 router.get('/users', authMiddleware(['admin', 'keeper']), userController.getUsers);
 
 // Obtener un usuario por ID: 'admin' y 'keeper' pueden acceder
-router.get('/users/:id', authMiddleware(['admin', 'keeper']), userController.getUserById);
+router.get('/user/:id', authMiddleware(['admin', 'keeper']), userController.getUserById);
 
 // AQceptar solicitud del cuidador
 router.get('/users/:id', authMiddleware(['admin']), userController.acceptRequest);
@@ -22,6 +22,6 @@ router.put('/users/:id', authMiddleware(['admin']), userController.updateUser);
 router.put('/users/deactivate/:id', authMiddleware(['admin']), userController.deactivateUser);
 
 // Rechazar la solicitud de un Keeper
-router.put('/users/deactivate/:id', authMiddleware(['admin']), userController.denyRequest);
+router.get('/users/deny/:id', authMiddleware(['admin']), userController.denyRequest);
 
 module.exports = router;

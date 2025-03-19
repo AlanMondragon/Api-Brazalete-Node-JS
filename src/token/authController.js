@@ -24,7 +24,7 @@ const loginUser = async (req, res) => {
     const token = generateToken(user);
 
     // Enviar el token como respuesta
-    res.json({ token, rol : user.rol });
+    res.json({ token });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
