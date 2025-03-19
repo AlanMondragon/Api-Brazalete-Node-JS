@@ -7,7 +7,7 @@ const authMiddleware = require('../token/authMiddleware');
 router.post('/users', userController.createUser);
 
 // Obtener todos los usuarios activos
-router.get('/users', authMiddleware(['admin', 'keeper']), userController.getUsers);
+router.get('/keepers', authMiddleware(['admin', 'keeper']), userController.getUsers);
 
 //Lista de keepers
 router.get('/users/listKeepers', authMiddleware(['admin', 'keeper']), userController.getLisKeeper)
@@ -16,7 +16,7 @@ router.get('/users/listKeepers', authMiddleware(['admin', 'keeper']), userContro
 router.get('/user/:id', authMiddleware(['admin', 'keeper']), userController.getUserById);
 
 // AQceptar solicitud del cuidador
-router.get('/users/:id', authMiddleware(['admin']), userController.acceptRequest);
+router.get('/acepKeep/:id', authMiddleware(['admin']), userController.acceptRequest);
 
 // Actualizar un usuario por ID: solo 'admin' puede actualizar
 router.put('/users/:id', authMiddleware(['admin']), userController.updateUser);

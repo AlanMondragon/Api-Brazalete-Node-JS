@@ -15,7 +15,7 @@ exports.createUser = async (req, res) => {
   }
 };
 
-// Solicitudes de cuidadores
+// Solicitudes de cuidadores Pendientes
 exports.getLisKeeper = async (req, res) => {
   try {  
     const users = await User.find(
@@ -41,12 +41,12 @@ exports.getListDenyKeeper = async (req, res) => {
   }
 };
 
-// Obtener todos los usuarios
+// Obtener todos los keepers
 exports.getUsers = async (req, res) => {
   try {
     const users = await User.find(
-      { edoReq: true, edo: true }, 
-      { email: 1, phone: 1, name: 1, _id: 0 } 
+      { edoReq: 1, edo: true }, 
+      { email: 1, phone: 1, name: 1 } 
     );
     res.status(200).json(users);
   } catch (error) {
