@@ -10,7 +10,7 @@ router.post('/users', userController.createUser);
 router.get('/users', authMiddleware(['admin', 'keeper']), userController.getUsers);
 
 // Obtener un usuario por ID: 'admin' y 'keeper' pueden acceder
-router.get('/users/:id', authMiddleware(['admin', 'keeper']), userController.getUserById);
+router.get('/user/:id', authMiddleware(['admin', 'keeper']), userController.getUserById);
 
 // AQceptar solicitud del cuidador
 router.get('/users/:id', authMiddleware(['admin']), userController.acceptRequest);
