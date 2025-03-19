@@ -22,6 +22,6 @@ router.put('/users/:id', authMiddleware(['admin']), userController.updateUser);
 router.put('/users/deactivate/:id', authMiddleware(['admin']), userController.deactivateUser);
 
 // Rechazar la solicitud de un Keeper
-router.put('/users/deactivate/:id', authMiddleware(['admin']), userController.denyRequest);
+router.get('/users/deny/:id', authMiddleware(['admin']), userController.denyRequest);
 
 module.exports = router;
