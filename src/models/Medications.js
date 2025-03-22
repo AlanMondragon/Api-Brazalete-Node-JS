@@ -14,7 +14,8 @@ const medicationSchema = new mongoose.Schema({
     },
     edo: {
         type: Boolean,
-        required: [true, "Es necesario el estado"]
+        required: [true, 'La descripcion es obligatoria'],
+        default: true
     }
 }, { timestamps: true }); // Opcional: agregar timestamps
 
