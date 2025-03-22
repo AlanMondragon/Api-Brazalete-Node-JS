@@ -32,7 +32,7 @@ exports.getLisKeeper = async (req, res) => {
 exports.getListDenyKeeper = async (req, res) => {
   try {  
     const users = await User.find(
-      { edoReq: 2, edo: true , rol: 'keeper' },  
+      { edoReq: 1, edo: true , rol: 'keeper' },  
       { email: 1, phone: 1, name: 1 },
     );
     res.status(200).json(users);
