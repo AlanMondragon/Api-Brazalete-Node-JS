@@ -12,6 +12,9 @@ router.get('/keepers', authMiddleware(['admin', 'keeper']), userController.getUs
 //Lista de keepers
 router.get('/users/listKeepers', authMiddleware(['admin', 'keeper']), userController.getLisKeeper)
 
+//Cuidadores aceptados
+router.get('/users/listKeeperss', authMiddleware(['admin', 'keeper']), userController.getListDenyKeeper)
+
 // Obtener un usuario por ID: 'admin' y 'keeper' pueden acceder
 router.get('/user/:id', authMiddleware(['admin', 'keeper']), userController.getUserById);
 

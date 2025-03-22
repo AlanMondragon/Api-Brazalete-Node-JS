@@ -15,6 +15,6 @@ router.get('/medication/:id', medicationController.findById);
 router.put('/medication/:id', medicationController.update);
 
 // Eliminar un usuario por ID
-router.delete('/medication/:id', medicationController.deactivate);
+router.put('/medication/desactivate/:id', medicationController.deactivate);
 
 module.exports = router;
