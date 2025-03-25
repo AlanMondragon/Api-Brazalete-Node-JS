@@ -6,8 +6,9 @@ const userRoutes = require('./routes/userRoutes');
 const medicationRoutes = require('./routes/MedicationRoutes');
 const braceletRoutes = require('./routes/BraceletRouters')
 const reminderRouter = require('./routes/RedimerRouters')
+const emailRouter = require('./routes/passwordRoutes')
 const { loginUser } = require('./token/authController');
-const authMiddleware = require('./token/authMiddleware'); // Importar el middleware
+const authMiddleware = require('./token/authMiddleware');
 
 // Cargar variables de entorno desde .env
 dotenv.config();
@@ -17,7 +18,6 @@ app.use(cors());
 
 // Middleware para parsear JSON
 app.use(express.json());
-
 
 // Conectar a MongoDB
 const dbUser = process.env.DBUSER;
@@ -31,19 +31,26 @@ mongoose.connect(mongoUri)
   .then(() => console.log('Conectado a MongoDB Atlas'))
   .catch((err) => console.error('Error conectando a MongoDB:', err));
 
+// ===== RUTAS PÚBLICAS =====
 // Ruta de login (pública)
 app.post('/login', loginUser);
 
+// Rutas para recuperación de contraseña (públicas)
+// Nota importante: Esto debe ir ANTES de las rutas protegidas
+app.use('/api/password', emailRouter);
+
+// ===== RUTAS PROTEGIDAS =====
+// Rutas de usuario (pueden tener mezcla de rutas protegidas y públicas)
 app.use('/api', userRoutes);
 
 // Protejo todo
-app.use('/api', authMiddleware(['admin', 'keeper']), medicationRoutes); // Proteger todas las rutas de medicamentos
+app.use('/api', authMiddleware(['admin', 'keeper']), medicationRoutes);
 
 // Proteger las rutas de pulseras
 app.use('/api', authMiddleware(['keeper','admin']), braceletRoutes);
 
 // Para los recordatorios
-app.use('/api',authMiddleware(['keeper','admin']), reminderRouter);
+app.use('/api', authMiddleware(['keeper','admin']), reminderRouter);
 
 // Ruta de prueba (pública)
 app.get('/', (req, res) => {

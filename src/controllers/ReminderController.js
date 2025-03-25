@@ -32,7 +32,7 @@ client.on("message", (topic, message) => {
 
   // Obtén el id_pulsera quitando "m/" del principio del topic
   const id_pulsera = topic.substring(2);  
-  console.log("ID Pulsera:", id_pulsera);
+  console.log("ID Pulsera:", id_pulsera);});
 
 exports.updateTimes = async (res, req) => {
   try{
@@ -48,7 +48,6 @@ exports.updateTimes = async (res, req) => {
   }
 }
 
-});
 
 
 
@@ -225,10 +224,11 @@ exports.getRemindersWithDetails = async (req, res) => {
   
       res.status(200).json(reminders);
     } catch (error) {
-      console.error("Error en la consulta de recordatorios:", error);
-      res.status(500).json({ error: "Error en la consulta de recordatorios" });
+        console.error("Error en la consulta de recordatorios:", error);
+        res.status(500).json({ error: "Error interno del servidor al buscar recordatorios" });
     }
-  };
+};
+
 
 // Obtener todos los recordatorios
 exports.getReminders = async (req, res) => {
