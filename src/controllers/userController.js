@@ -70,13 +70,39 @@ exports.getUserById = async (req, res) => {
 // Actualizar un usuario por ID
 exports.updateUser = async (req, res) => {
   try {
-    const user = await User.findByIdAndUpdate(req.params.id, req.body, {
-      new: true, // Devuelve el documento actualizado
-      runValidators: true // Aplica las validaciones del esquema
-    });
-    if (!user) {
+    const userId = req.params.id;
+    const { oldPassword, newPassword, ...userData } = req.body;
+    
+    // Find the user first to check password if needed
+    const currentUser = await User.findById(userId);
+    
+    if (!currentUser) {
       return res.status(404).json({ error: 'Usuario no encontrado' });
     }
+    
+    // If password change is requested
+    if (oldPassword && newPassword) {
+      // Verify old password
+      const isPasswordValid = await currentUser.comparePassword(oldPassword);
+      
+      if (!isPasswordValid) {
+        return res.status(400).json({ message: 'La contraseña actual es incorrecta' });
+      }
+      
+      // Set new password (will be hashed in pre-save hook)
+      currentUser.password = newPassword;
+      
+      // Save the user with the new password
+      const updatedUser = await currentUser.save();
+      return res.status(200).json(updatedUser);
+    } 
+    
+    // If it's just a regular profile update (no password change)
+    const user = await User.findByIdAndUpdate(userId, userData, {
+      new: true,
+      runValidators: true
+    });
+    
     res.status(200).json(user);
   } catch (error) {
     res.status(400).json({ error: error.message });

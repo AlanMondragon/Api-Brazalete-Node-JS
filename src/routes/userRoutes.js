@@ -22,7 +22,7 @@ router.get('/user/:id', authMiddleware(['admin', 'keeper']), userController.getU
 router.get('/acepKeep/:id', authMiddleware(['admin']), userController.acceptRequest);
 
 // Actualizar un usuario por ID: solo 'admin' puede actualizar
-router.put('/users/:id', authMiddleware(['admin']), userController.updateUser);
+router.put('/users/:id', authMiddleware(['admin', 'keeper']), userController.updateUser);
 
 // Eliminar (desactivar) un usuario: solo 'admin' puede eliminar
 router.put('/users/deactivate/:id', authMiddleware(['admin']), userController.deactivateUser);
