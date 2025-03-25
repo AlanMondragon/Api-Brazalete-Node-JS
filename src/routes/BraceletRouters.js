@@ -1,20 +1,20 @@
 const express = require('express');
 const router = express.Router();
-const brazaletController = require('../controllers/brazaletController');
+const brazaletController = require('../controllers/BraceletController');
 
 // Crear una pulsera
-router.post('/brazalet', brazaletController.createbrazalet);
+router.post('/brazalet', brazaletController.createBracelet);
 
 // Obtener todas las pulseras
-router.get('/brazalet', brazaletController.getbrazalets);
+router.get('/brazalet', brazaletController.getBracelets);
 
 // Obtener una pulsera por ID
-router.get('/brazalet/:id', brazaletController.getbrazaletById);
+router.get('/brazalet/:id', brazaletController.getBraceletById);
 
 // Actualizar una pulsera por ID
-router.put('/brazalet/:id', brazaletController.updatebrazalet);
+router.put('/brazalet/:id', brazaletController.updateBracelet);
 
 // Desactivar una pulsera por ID
-router.delete('/brazalet/:id', brazaletController.deactivatebrazalet);
+router.delete('/brazalet/:id', brazaletController.deactivateBracelet);
 
 module.exports = router;

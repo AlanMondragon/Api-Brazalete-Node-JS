@@ -176,12 +176,8 @@ exports.getRemindersWithDetails = async (req, res) => {
   // Recordatorios por Usuario Id
   exports.getRemindersByUserId = async (req, res) => {
     try {
-      const userId = req.params.userId; // Obtener el ID desde la URL
+      const userId = parseInt(req.params.userId);
   
-      // Verificar si el ID proporcionado es válido
-      if (!ObjectId.isValid(userId)) {
-        return res.status(400).json({ error: "ID de usuario no válido" });
-      }
   
       const reminders = await Reminder.aggregate([
         {
@@ -194,7 +190,7 @@ exports.getRemindersWithDetails = async (req, res) => {
         },
         { $unwind: "$usuario" },
         {
-          $match: { "usuario._id": new ObjectId(userId) } // Convertir el string a ObjectId
+          $match: { "usuario._id": userId }
         },
         {
           $lookup: {
