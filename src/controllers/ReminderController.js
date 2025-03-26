@@ -1,12 +1,11 @@
 const Reminder = require('../models/Reminder');
 const mqtt = require('mqtt')
 const dotenv = require('dotenv');
-const { ObjectId } = require("mongodb"); // Importar ObjectId
 const moment = require('moment');
 dotenv.config();
 
-const MQTT_BROKER = process.env.MQTTIP; // Cambia a la IP de tu broker si está en otro servidor
-let MQTT_TOPIC = "reminders/notify"; // Tema MQTT para notificar
+const MQTT_BROKER = process.env.MQTTIP;
+let MQTT_TOPIC = "reminders/notify"; 
 const client = mqtt.connect(MQTT_BROKER);
 
 client.on("connect", () => {
@@ -14,39 +13,60 @@ client.on("connect", () => {
 });
 
 client.on("error", (err) => {
-  console.error("🚨 Error en MQTT:", err);
+  console.error("Error en MQTT:", err);
 });
-
-
 
 client.subscribe("reminders/confirm/#", (err) => {
   if (err) {
-    console.error("❌ Error al suscribirse al tema MQTT");
+    console.error("Error al suscribirse al tema MQTT");
   } else {
-    console.log("📥 Suscrito a reminders/confirm");
+    console.log("Suscrito a reminders/confirm");
   }
 });
 
-client.on("message", (topic, message) => {
-  console.log(`📩 Mensaje recibido en ${topic}:`, message.toString());
-
-  // Obtén el id_pulsera quitando "m/" del principio del topic
-  const id_pulsera = topic.substring(2);  
-  console.log("ID Pulsera:", id_pulsera);});
-
-exports.updateTimes = async (res, req) => {
-  try{
-    const reminder = await Reminder.findByIdAndUpdate(id,
+async function updateTimes(id, tiempo) {
+  const timeWait = parseInt(tiempo)
+  try {
+    const reminder = await Reminder.findByIdAndUpdate(
+      id,
       {
-        $set : { tiempo : message.toJSON.wait } 
-      }
-    ) 
-
-
-  }catch(e){
-
+        $set: { timeout: timeWait }
+      },
+      { new: true } 
+    );
+  
+    if (!reminder) {
+      throw new Error("Reminder no encontrado"); 
+    }
+  
+    console.log("Reminder actualizado:", reminder);
+    return reminder;
+  } catch (error) {
+    console.error("Error al actualizar el reminder:", error.message);
+    throw error; 
   }
 }
+
+// Listener del mensaje
+client.on("message", async (topic, message) => {
+  try {
+    console.log(`Mensaje recibido en ${topic}:`, message.toString());
+
+    const id_pulsera = topic.substring(18);
+    const fullMessage = message.toString();
+    const time = fullMessage.substring(5);
+
+    console.log("Tiempo en segundos:", time);
+    console.log("ID Pulsera:", id_pulsera);
+
+    // Llamar a la función de actualización
+    await updateTimes(id_pulsera, time)( () => {
+      console.log("se logro xddd")
+    });
+  } catch (error) {
+    console.error("Error al procesar mensaje MQTT:", error);
+  }
+});
 
 
 
@@ -58,7 +78,7 @@ exports.createReminder = async (req, res) => {
       reminder.edo = true; 
       await reminder.save();
 
-      // 📌 Consultar directamente el nombre del medicamento con `aggregate()`
+      // Consultar directamente el nombre del medicamento con `aggregate()`
       const reminderWithMed = await Reminder.aggregate([
           { $match: { _id: reminder._id } },
           {
@@ -85,7 +105,7 @@ exports.createReminder = async (req, res) => {
           return res.status(404).json({ error: "Recordatorio no encontrado" });
       }
 
-      // 📅 Calcular la cantidad de tomas basado en `time`
+      // Calcular la cantidad de tomas basado en `time`
       const inicio = moment(reminderWithMed[0].inicio);
       const fin = moment(reminderWithMed[0].fin);
       const intervaloHoras = reminderWithMed[0].time || 9; // `time` del modelo define el intervalo

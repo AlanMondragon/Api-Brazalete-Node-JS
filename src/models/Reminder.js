@@ -10,6 +10,7 @@ const reminderSchema = new mongoose.Schema({
     cronico: { type: Boolean, required: true },
     id_medicamento: { type: Number, required: true }, // Cambiar de ObjectId a Number
     id_usuario: { type: Number, required: true }, // Cambiar de ObjectId a Number
+    timeout: {type: Number ,required: false},
     id_pulsera: { type: Number, required: true }, // Cambiar de ObjectId a Number
     edo: { type: Boolean, required: true }
 }, { timestamps: true });
