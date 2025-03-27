@@ -18,6 +18,6 @@ router.get('/brazalet/:id', brazaletController.getBraceletById);
 router.put('/brazalet/:id', brazaletController.updateBracelet);
 
 // Desactivar una pulsera por ID
-router.delete('/brazalet/:id', brazaletController.deactivateBracelet);
+router.get('/brazalet/:id', brazaletController.deactivateBracelet);
 
 module.exports = router;
