@@ -62,7 +62,37 @@ exports.deactivate = async (req, res) => {
             },
         );
 
-        res.status(200).json({ message: "Elemento desactivado" }, { medication })
+        res.status(200).json({message : "elemento desactivado"})
+    } catch (e) {
+        res.status(400).json({ error : e.message })
+    }
+}
+
+//Medicacmentos desactivados
+exports.getAllMedicationDesativate = async (req, res) => {
+    try{
+        const medication = Medication.find({
+            edo : true
+        })
+        res.status(200).json(medication);
+    }catch(e){
+
+        res.status(400).json({error : e.message})
+
+    }
+}
+
+//Reactivar medicamentos
+exports.reactivate = async (req, res) => {
+    try {
+        const medication = await Medication.findByIdAndUpdate(req.params.id,
+            {
+                new: true,
+                edo: true
+            },
+        );
+
+        res.status(200).json({ message: "Elemento activado" })
     } catch (e) {
 
     }
