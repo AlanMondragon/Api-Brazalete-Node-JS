@@ -1,11 +1,28 @@
 const Bracelet = require('../models/Bracelet');
+const dotenv = require("dotenv");
+dotenv.config();
+
+const MQTT_BROKER = process.env.MQTTIP;
 
 // Crear una pulsera
 exports.createBracelet = async (req, res) => {
     try {
-          const bracelet = new Bracelet(req.body)
-          bracelet.edo = true;
-          await bracelet.save();
+        const bracelet = new Bracelet({
+            ...req.body,
+            edo: true,
+            ip_mqtt: MQTT_BROKER + "reminders/confirm/" 
+        });
+
+        await bracelet.save();
+
+        //Se actualiza con el id actualizado
+        const updatedBracelet = await Bracelet.findByIdAndUpdate(
+            bracelet._id,
+            { $set: { ip_mqtt: bracelet.ip_mqtt + bracelet._id } },
+            { new: true }
+        );
+
+        return res.status(200).json(updatedBracelet);
     } catch (error) {
         res.status(400).json({ error: error.message });
     }

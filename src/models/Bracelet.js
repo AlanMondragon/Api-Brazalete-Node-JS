@@ -2,26 +2,28 @@ const mongoose = require('mongoose');
 const AutoIncrement = require('mongoose-sequence')(mongoose);
 
 const braceletSchema = new mongoose.Schema({
-    _id: { type: Number }, // Definir _id como Number para que sea autoincremental
-    // Otros campos del esquema Bracelet
+    _id: { type: Number }, 
     nombre: {
         type: String,
         required: [true, 'El nombre es obligatorio']
     },
-    descripcion: {
+    ip_mqtt: {
         type: String,
-        required: [true, 'La descripción es obligatoria']
+        required: [true, 'La ipMqtt es obligatoria']
     },
     edo: {
         type: Boolean,
         required: [true, 'El estado es obligatorio']
+    },
+    id_user : {
+        type : Number,
+        requierd : [true, "El id del usuario es requerida"]
     }
 }, { timestamps: true });
 
-// Aplicar el plugin con un nombre único para la secuencia
 braceletSchema.plugin(AutoIncrement, { 
     inc_field: '_id', 
-    id: 'bracelet_seq', // Nombre único para la secuencia de Bracelet
+    id: 'bracelet_seq',
     start_seq: 1 
 });
 
