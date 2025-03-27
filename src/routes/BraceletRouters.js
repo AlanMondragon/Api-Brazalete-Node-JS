@@ -8,6 +8,9 @@ router.post('/brazalet', brazaletController.createBracelet);
 // Obtener todas las pulseras
 router.get('/brazalet', brazaletController.getBracelets);
 
+//Obtener brazalete por id de Usuario
+router.get('/brazalet/user/:id', brazaletController.getBraceletByIdUser)
+
 // Obtener una pulsera por ID
 router.get('/brazalet/:id', brazaletController.getBraceletById);
 

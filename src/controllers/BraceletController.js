@@ -10,7 +10,7 @@ exports.createBracelet = async (req, res) => {
         const bracelet = new Bracelet({
             ...req.body,
             edo: true,
-            ip_mqtt: MQTT_BROKER + "reminders/confirm/" 
+            ip_mqtt: MQTT_BROKER + "reminders/confirm/"
         });
 
         await bracelet.save();
@@ -32,7 +32,7 @@ exports.createBracelet = async (req, res) => {
 exports.getBracelets = async (req, res) => {
     try {
         const bracelets = await Bracelet.find({
-            edo : true
+            edo: true
         });
         res.status(200).json(bracelets);
     } catch (error) {
@@ -52,6 +52,38 @@ exports.getBraceletById = async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 };
+
+//Obtener brazalete por id de usuario
+exports.getBraceletByIdUser = async (req, res) => {
+    try {
+        const id_user = parseInt(req.params.id);
+        const brazalet = await Bracelet.aggregate([
+            {
+                $match : {edo : true}
+            },
+            {
+                $lookup: {
+                    from: "users",
+                    localField: "id_user",
+                    foreignField: "_id",
+                    as: "usuario"
+                }
+            },
+            { $unwind: "$usuario" },
+            {
+                $match: { "usuario._id": id_user }
+            },
+            {
+                $project: {
+                    nombre: 1,
+                }
+            }
+        ])
+        res.status(200).json(brazalet)
+    } catch (error) {
+        res.status(400).json({error : error.message})
+    }
+}
 
 // Actualizar una pulsera por ID
 exports.updateBracelet = async (req, res) => {
