@@ -68,17 +68,15 @@ exports.deactivate = async (req, res) => {
     }
 }
 
-//Medicacmentos desactivados
+// Medicamentos desactivados
 exports.getAllMedicationDesativate = async (req, res) => {
-    try{
-        const medication = Medication.find({
-            edo : true
-        })
+    try {
+        const medication = await Medication.find({
+            edo: false
+        });
         res.status(200).json(medication);
-    }catch(e){
-
-        res.status(400).json({error : e.message})
-
+    } catch(e) {
+        res.status(400).json({ error: e.message });
     }
 }
 
