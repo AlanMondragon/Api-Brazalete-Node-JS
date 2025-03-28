@@ -68,9 +68,6 @@ client.on("message", async (topic, message) => {
   }
 });
 
-
-
-
 //Crear recordatorio
 exports.createReminder = async (req, res) => {
   try {
@@ -247,6 +244,119 @@ exports.getRemindersWithDetails = async (req, res) => {
         console.error("Error en la consulta de recordatorios:", error);
         res.status(500).json({ error: "Error interno del servidor al buscar recordatorios" });
     }
+};
+
+
+  // Recordatorios por Usuario Id con tiempo de espera
+  exports.getRemindersByUserIdWithTimeout = async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+  
+  
+      const reminders = await Reminder.aggregate([
+        {
+          $lookup: {
+            from: "users",
+            localField: "id_usuario",
+            foreignField: "_id",
+            as: "usuario"
+          }
+        },
+        { $unwind: "$usuario" },
+        {
+          $match: { "usuario._id": userId }
+        },
+        {
+          $lookup: {
+            from: "medications",
+            localField: "id_medicamento",
+            foreignField: "_id",
+            as: "medicamentos"
+          }
+        },
+        { $unwind: "$medicamentos" },
+        {
+          $lookup: {
+            from: "bracelets",
+            localField: "id_pulsera",
+            foreignField: "_id",
+            as: "brazaletes"
+          }
+        },
+        { $unwind: "$brazaletes" },
+        { $match: { timeout: { $exists: true } } },
+        {
+          $project: {
+            nombre_paciente: 1,
+            "medicamentos.nombre": 1,
+            "usuario.name": 1,
+            "usuario.rol": 1,
+            inicio: 1,
+            fin: 1,
+            cronico: 1,
+            timeout : 1
+          }
+        }
+      ]);
+  
+      res.status(200).json(reminders);
+    } catch (error) {
+        console.error("Error en la consulta de recordatorios:", error);
+        res.status(500).json({ error: "Error interno del servidor al buscar recordatorios" });
+    }
+};
+
+
+// Recordatorios con tiempo de espera
+exports.getRemindersWithTimeout = async (req, res) => {
+  try {
+    const reminders = await Reminder.aggregate([
+      {
+        $lookup: {
+          from: "users",
+          localField: "id_usuario",
+          foreignField: "_id",
+          as: "usuario"
+        }
+      },
+      {
+        $lookup: {
+          from: "medications",
+          localField: "id_medicamento",
+          foreignField: "_id",
+          as: "medicamentos"
+        }
+      },
+      { $unwind: "$medicamentos" },
+      {
+        $lookup: {
+          from: "bracelets",
+          localField: "id_pulsera",
+          foreignField: "_id",
+          as: "brazaletes"
+        }
+      },
+      { $unwind: "$brazaletes" },
+      { $match: { timeout: { $exists: true } } },
+      {
+        $project: {
+          nombre_paciente: 1,
+          "medicamentos.nombre": 1,
+          "usuario.name": 1,
+          "usuario.rol": 1,
+          inicio: 1,
+          fin: 1,
+          cronico: 1,
+          timeout : 1
+        }
+      }
+    ]);
+
+    res.status(200).json(reminders);
+  } catch (error) {
+      console.error("Error en la consulta de recordatorios:", error);
+      res.status(500).json({ error: "Error interno del servidor al buscar recordatorios" });
+  }
 };
 
 

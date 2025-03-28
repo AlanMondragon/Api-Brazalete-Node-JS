@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const reminderController = require('../controllers/ReminderController');
+const Reminder = require('../models/Reminder');
 
 // Crear un recordatorio
 router.post('/reminder', reminderController.createReminder);
@@ -25,5 +26,11 @@ router.get("/reminders", reminderController.getRemindersWithDetails);
 
 // Ruta para obtener recordatorios por ID de usuario
 router.get("/reminders/user/:userId", reminderController.getRemindersByUserId);
+
+//Recordatorios con tiempo de espera por id de usuario
+router.get("/reminders/timeout/:userId", reminderController.getRemindersByUserIdWithTimeout)
+
+//Recordatorios con tiempo de espera por id de usuario
+router.get("/reminders/timeout", reminderController.getRemindersWithTimeout)
 
 module.exports = router;
