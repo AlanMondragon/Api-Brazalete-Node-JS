@@ -165,6 +165,26 @@ exports.deactivateUser = async (req, res) => {
   }
 };
 
+// Desactivar un usuario por ID (Desactivado lógico)
+exports.reaactivateUser = async (req, res) => {
+  try {
+    const { id } = req.params; 
+    const user = await User.findByIdAndUpdate(
+      id,
+      { edo: true }, 
+      { new: true, runValidators: true } 
+    );
+
+    if (!user) {
+      return res.status(404).json({ error: 'Usuario no encontrado' });
+    }
+
+    res.status(200).json({ message: 'Usuario desactivado correctamente', user });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+};
+
 // Admisión de keepers
 exports.acceptRequest = async (req, res) => {
   try {
@@ -186,3 +206,16 @@ exports.acceptRequest = async (req, res) => {
 };
 
 module.exports = exports;
+
+
+//User desactivados
+exports.getUserDesabled = async (req, res) => {
+  try {
+    const users = await User.find(
+      {edo : false}
+    )
+    res.status(200).json(users)
+  } catch (error) {
+    res.status(400).json({error : error.message})
+  }
+}

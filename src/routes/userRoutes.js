@@ -12,6 +12,9 @@ router.get('/keepers', authMiddleware(['admin', 'keeper']), userController.getUs
 //Lista de keepers
 router.get('/users/listKeepers', authMiddleware(['admin', 'keeper']), userController.getLisKeeper)
 
+//Lista de user con edo en false
+router.get('/users/disabled', authMiddleware(['admin']), userController.getUserDesabled)
+
 //Cuidadores aceptados
 router.get('/users/listKeeperss', authMiddleware(['admin', 'keeper']), userController.getListDenyKeeper)
 
@@ -26,6 +29,9 @@ router.put('/users/:id', authMiddleware(['admin', 'keeper']), userController.upd
 
 // Eliminar (desactivar) un usuario: solo 'admin' puede eliminar
 router.put('/users/deactivate/:id', authMiddleware(['admin']), userController.deactivateUser);
+
+// Eliminar (desactivar) un usuario: solo 'admin' puede eliminar
+router.get('/users/reactivate/:id', authMiddleware(['admin']), userController.reaactivateUser);
 
 // Rechazar la solicitud de un Keeper
 router.get('/users/deny/:id', authMiddleware(['admin']), userController.denyRequest);
