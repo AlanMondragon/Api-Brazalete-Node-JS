@@ -205,8 +205,6 @@ exports.acceptRequest = async (req, res) => {
   }
 };
 
-module.exports = exports;
-
 
 //User desactivados
 exports.getUserDesabled = async (req, res) => {
@@ -219,3 +217,6 @@ exports.getUserDesabled = async (req, res) => {
     res.status(400).json({error : error.message})
   }
 }
+
+
+module.exports = exports;

@@ -1,4 +1,5 @@
 const Reminder = require('../models/Reminder');
+const ListenerReminder = require('./../models/ListenerReminder')
 const mqtt = require('mqtt')
 const dotenv = require('dotenv');
 const moment = require('moment');
@@ -35,6 +36,30 @@ async function updateTimes(id, tiempo) {
       { new: true } 
     );
   
+    if(reminder.timeout === null){
+      const listeerreminder = await ListenerReminder.updateOne({
+        id_reminder : id,
+      },
+        {
+          $set: { timeout: timeWait }
+        },
+        { new: true } 
+      );
+    }else {
+      
+    // Crear y guardar el listener
+    const newListener = new ListenerReminder({
+      inicio: reminder.inicio,
+      fin: reminder.fin,
+      id_reminder: reminder._id,
+      nombre_paciente: reminder.nombre_paciente,
+      cronico: reminder.cronico,
+      timeout: reminder.timeout,
+    });
+
+    await newListener.save();
+    }
+
     if (!reminder) {
       throw new Error("Reminder no encontrado"); 
     }
@@ -68,75 +93,116 @@ client.on("message", async (topic, message) => {
   }
 });
 
-//Crear recordatorio
+//Creacion de recordatorios
 exports.createReminder = async (req, res) => {
   try {
-      const reminder = new Reminder(req.body);
-      reminder.edo = true; 
-      await reminder.save();
+    // Validación básica
+    if (!req.body.inicio || !req.body.fin || !req.body.id_medicamento) {
+      return res.status(400).json({ error: "Faltan campos requeridos" });
+    }
 
-      // Consultar directamente el nombre del medicamento con `aggregate()`
-      const reminderWithMed = await Reminder.aggregate([
-          { $match: { _id: reminder._id } },
-          {
-              $lookup: {
-                  from: "medications",
-                  localField: "id_medicamento",
-                  foreignField: "_id",
-                  as: "medicamento"
-              }
-          },
-          { $unwind: "$medicamento" },
-          {
-              $project: {
-                  nombre_paciente: 1,
-                  nombre_medicamento: "$medicamento.nombre",
-                  inicio: 1,
-                  fin: 1,
-                  time: 1 // Intervalo de tomas en horas
-              }
+    // Crear y guardar el reminder
+    const reminder = new Reminder({
+      ...req.body,
+      edo: true,
+    });
+    await reminder.save();
+
+    console.log(reminder._id)
+
+    // Crear y guardar el listener
+    const newListener = new ListenerReminder({
+      inicio: reminder.inicio,
+      fin: reminder.fin,
+      id_reminder: reminder._id,
+      nombre_paciente: reminder.nombre_paciente,
+      cronico: reminder.cronico,
+      timeout: reminder.timeout,
+    });
+    await newListener.save();
+
+    // Obtener datos completos del reminder con medicamento
+    const [reminderWithMed] = await Reminder.aggregate([
+      { $match: { _id: reminder._id } },
+      {
+        $lookup: {
+          from: "medications",
+          localField: "id_medicamento",
+          foreignField: "_id",
+          as: "medicamento"
+        }
+      },
+      { $unwind: "$medicamento" },
+      {
+        $project: {
+          nombre_paciente: 1,
+          nombre_medicamento: "$medicamento.nombre",
+          inicio: 1,
+          fin: 1,
+          time: 1,
+          id_pulsera: 1
           }
-      ]);
-
-      if (!reminderWithMed.length) {
-          return res.status(404).json({ error: "Recordatorio no encontrado" });
       }
+    ]);
 
-      // Calcular la cantidad de tomas basado en `time`
-      const inicio = moment(reminderWithMed[0].inicio);
-      const fin = moment(reminderWithMed[0].fin);
-      const intervaloHoras = reminderWithMed[0].time || 9; // `time` del modelo define el intervalo
+    if (!reminderWithMed) {
+      return res.status(404).json({ error: "Recordatorio no encontrado" });
+    }
 
-      const diferenciaHoras = fin.diff(inicio, 'hours'); // Diferencia total en horas
-      const totalTomas = Math.floor(diferenciaHoras / intervaloHoras) + 1; // Se suma 1 para incluir la primera toma
+    // Calcular total de tomas
+    const inicio = new Date(reminderWithMed.inicio);
+    const fin = new Date(reminderWithMed.fin);
+    const intervaloHoras = reminderWithMed.time || 9;
+    
+    const diferenciaMs = fin - inicio;
+    const diferenciaHoras = diferenciaMs / (1000 * 60 * 60);
+    const totalTomas = Math.floor(diferenciaHoras / intervaloHoras) + 1;
 
-      // 📡 Publicar mensaje MQTT con la cantidad de tomas
-      const message = JSON.stringify({
-          ...reminderWithMed[0],
-          total_tomas: totalTomas
-      });
-   
-      MQTT_TOPIC = MQTT_TOPIC + reminder.id_pulsera
+    // Preparar y enviar mensaje MQTT
+    const message = JSON.stringify({
+      ...reminderWithMed,
+      total_tomas: totalTomas
+    });
+    
+    const topic = MQTT_TOPIC + reminderWithMed.id_pulsera;
 
-      client.publish(MQTT_TOPIC, message, { qos: 1 }, (err) => {
-          if (err) {
-              console.error("❌ Error al publicar en MQTT:", err);
-          } else {
-              console.log("✅ Mensaje MQTT enviado:", message);
-          }
-      });
+    client.publish(topic, message, { qos: 1 }, (err) => {
+      if (err) {
+        console.error("❌ Error al publicar en MQTT:", err);
+        // Considera registrar el error pero no fallar la operación completa
+      } else {
+        console.log("✅ Mensaje MQTT enviado:", message);
+      }
+    });
 
-      res.status(201).json({
-          ...reminderWithMed[0],
-          total_tomas: totalTomas
-      });
+    res.status(201).json({
+      ...reminderWithMed,
+      total_tomas: totalTomas
+    });
+
+    console.log(newListener)
 
   } catch (error) {
-      res.status(400).json({ error: error.message });
+    console.error("Error en createReminder:", error);
+    res.status(500).json({ error: error.message });
   }
 };
 
+//Listado de historico por recordatorio (Peticion del Pelon)
+exports.getHistoryReminderByIdReminder = async (req, res) =>{
+  try {
+    const id = parseInt(req.params.id)
+    const listenerReminders = await ListenerReminder.find({
+      id_reminder: id,
+      timeout: { $exists: true } 
+    });
 
+    res.status(200).json(listenerReminders)
+
+  } catch (error) {
+    res.status(400).json({ error : error.message })
+  }
+}
 
 // Todos
 exports.getRemindersWithDetails = async (req, res) => {
@@ -385,18 +451,36 @@ exports.getReminderById = async (req, res) => {
 
 // Actualizar un recordatorio por ID
 exports.updateReminder = async (req, res) => {
-    try {
-        const reminder = await Reminder.findByIdAndUpdate(req.params.id, req.body, {
-            new: true, // Devuelve el documento actualizado
-            runValidators: true, // Aplica las validaciones del esquema
-        }).populate('id_medicamento id_usuario id_pulsera');
-        if (!reminder) {
-            return res.status(404).json({ error: 'Recordatorio no encontrado' });
-        }
-        res.status(200).json(reminder);
-    } catch (error) {
-        res.status(400).json({ error: error.message });
-    }
+  try {
+      const reminder = await Reminder.findByIdAndUpdate(
+          req.params.id, 
+          req.body, 
+          {
+              new: true, 
+              runValidators: true, 
+          }
+      ).populate('id_medicamento id_usuario id_pulsera');
+
+      if (!reminder) {
+          return res.status(404).json({ error: 'Recordatorio no encontrado' });
+      }
+
+      res.status(200).json(reminder);
+
+      const topic = MQTT_TOPIC + reminder.id_pulsera;
+      const message = reminder;
+
+      client.publish(topic, message, { qos: 1 }, (err) => {
+          if (err) {
+              console.error("❌ Error al publicar en MQTT:", err);
+          } else {
+              console.log("✅ Mensaje de update MQTT enviado:", message);
+          }
+      });
+
+  } catch (error) {
+      res.status(400).json({ error: error.message });
+  }
 };
 
 // Desactivar un recordatorio (cambiar estado a false)

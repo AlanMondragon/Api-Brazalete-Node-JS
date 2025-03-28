@@ -33,4 +33,7 @@ router.get("/reminders/timeout/:userId", reminderController.getRemindersByUserId
 //Recordatorios con tiempo de espera por id de usuario
 router.get("/reminders/timeout", reminderController.getRemindersWithTimeout)
 
+//Recordatorios con tiempo de espera por id de usuario
+router.get("/reminders/hystory/:id", reminderController.getHistoryReminderByIdReminder)
+
 module.exports = router;
