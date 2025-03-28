@@ -76,6 +76,7 @@ exports.getBraceletByIdUser = async (req, res) => {
             {
                 $project: {
                     nombre: 1,
+                    edo : 1
                 }
             }
         ])
