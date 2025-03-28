@@ -15,9 +15,9 @@ router.get('/brazalet/user/:id', brazaletController.getBraceletByIdUser)
 router.get('/brazalet/:id', brazaletController.getBraceletById);
 
 // Actualizar una pulsera por ID
-router.put('/brazalet/:id', brazaletController.updateBracelet);
+router.put('/brazalet/update/:id', brazaletController.updateBracelet);
 
 // Desactivar una pulsera por ID
-router.get('/brazalet/:id', brazaletController.deactivateBracelet);
+router.get('/brazalet/desativate/:id', brazaletController.deactivateBracelet);
 
 module.exports = router;
