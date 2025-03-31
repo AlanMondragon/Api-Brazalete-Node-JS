@@ -96,10 +96,6 @@ client.on("message", async (topic, message) => {
 //Creacion de recordatorios
 exports.createReminder = async (req, res) => {
   try {
-    // Validación básica
-    if (!req.body.inicio || !req.body.fin || !req.body.id_medicamento) {
-      return res.status(400).json({ error: "Faltan campos requeridos" });
-    }
 
     // Crear y guardar el reminder
     const reminder = new Reminder({
