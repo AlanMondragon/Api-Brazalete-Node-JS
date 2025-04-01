@@ -251,12 +251,10 @@ exports.getRemindersWithDetails = async (req, res) => {
     }
   };
 
-  // Recordatorios por Usuario Id
+  // Recordatorios por Usuario Id activos
   exports.getRemindersByUserId = async (req, res) => {
     try {
       const userId = parseInt(req.params.userId);
-  
-  
       const reminders = await Reminder.aggregate([
         {
           $lookup: {
@@ -268,7 +266,10 @@ exports.getRemindersWithDetails = async (req, res) => {
         },
         { $unwind: "$usuario" },
         {
-          $match: { "usuario._id": userId }
+          $match: { 
+            "usuario._id": userId,
+            "edo" : true
+          }
         },
         {
           $lookup: {
@@ -307,6 +308,65 @@ exports.getRemindersWithDetails = async (req, res) => {
         res.status(500).json({ error: "Error interno del servidor al buscar recordatorios" });
     }
 };
+
+//Recordatorio por Usuario Id desactivados
+exports.getRemindersDeactivatedByUserId = async (req, res) => {
+  try {
+    const userId = parseInt(req.params.userId);
+    const reminders = await Reminder.aggregate([
+      {
+        $lookup: {
+          from: "users",
+          localField: "id_usuario",
+          foreignField: "_id",
+          as: "usuario"
+        }
+      },
+      { $unwind: "$usuario" },
+      {
+        $match: { 
+          "usuario._id": userId,
+          "edo" : false
+        }
+      },
+      {
+        $lookup: {
+          from: "medications",
+          localField: "id_medicamento",
+          foreignField: "_id",
+          as: "medicamentos"
+        }
+      },
+      { $unwind: "$medicamentos" },
+      {
+        $lookup: {
+          from: "bracelets",
+          localField: "id_pulsera",
+          foreignField: "_id",
+          as: "brazaletes"
+        }
+      },
+      { $unwind: "$brazaletes" },
+      {
+        $project: {
+          nombre_paciente: 1,
+          "medicamentos.nombre": 1,
+          "usuario.name": 1,
+          "usuario.rol": 1,
+          inicio: 1,
+          fin: 1,
+          cronico: 1
+        }
+      }
+    ]);
+
+    res.status(200).json(reminders);
+  } catch (error) {
+      console.error("Error en la consulta de recordatorios:", error);
+      res.status(500).json({ error: "Error interno del servidor al buscar recordatorios" });
+  }
+};
+
 
 
   // Recordatorios por Usuario Id con tiempo de espera

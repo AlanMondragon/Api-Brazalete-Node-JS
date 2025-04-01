@@ -27,6 +27,8 @@ router.get("/reminders", reminderController.getRemindersWithDetails);
 // Ruta para obtener recordatorios por ID de usuario
 router.get("/reminders/user/:userId", reminderController.getRemindersByUserId);
 
+router.get("/reminders/user/deactivate/:userId", reminderController.getRemindersDeactivatedByUserId);
+
 //Recordatorios con tiempo de espera por id de usuario
 router.get("/reminders/timeout/:userId", reminderController.getRemindersByUserIdWithTimeout)
 

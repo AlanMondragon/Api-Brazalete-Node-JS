@@ -28,7 +28,7 @@
     "mongoose-auto-increment-reworked": "^1.2.1",
     "mongoose-sequence": "^6.0.1",
     "mqtt": "^5.10.4",
-    "resend": "^4.1.2"
+    "resend": "^4.2.0"
   },
   "devDependencies": {
     "nodemon": "^3.1.9"
