@@ -4,25 +4,23 @@ dotenv.config();
 
 const MQTT_BROKER = process.env.MQTTIP;
 
-// Crear una pulsera
+
 exports.createBracelet = async (req, res) => {
     try {
+        const exists = await Bracelet.exists({ _id: req.body._id });
+        if (exists) {
+            return res.status(400).json({ error: "Esta pulsera ya ha sido registrada" });
+        }
+
         const bracelet = new Bracelet({
+            _id: req.body._id,
             ...req.body,
             edo: true,
-            ip_mqtt: MQTT_BROKER + "reminders/confirm/"
+            ip_mqtt: MQTT_BROKER + "reminders/confirm/" + req.body._id
         });
 
         await bracelet.save();
-
-        //Se actualiza con el id actualizado
-        const updatedBracelet = await Bracelet.findByIdAndUpdate(
-            bracelet._id,
-            { $set: { ip_mqtt: bracelet.ip_mqtt + bracelet._id } },
-            { new: true }
-        );
-
-        return res.status(200).json(updatedBracelet);
+        return res.status(200).json(bracelet);
     } catch (error) {
         res.status(400).json({ error: error.message });
     }
@@ -119,3 +117,33 @@ exports.deactivateBracelet = async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 };
+
+//Get last Id
+exports.getLastId = async (req, res) => {
+    try {
+        const lastId = await Bracelet.find({},{_id : 1}).sort({ _id: -1 }).limit(1);
+        if (!lastId) {
+            return res.status(404).json({ error: 'No se encontró ninguna pulsera' });
+        }
+        res.status(200).json({_id : lastId[0]._id});
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+}
+
+//Compartat ID
+exports.shareId = async (req, res) => {
+    try {
+        const id = parseInt(req.params.id);
+        const bracelet = await Bracelet.findById(id);
+
+        if (!bracelet) {
+            return res.status(404).json({ error: 'Pulsera no encontrada' });
+        }else{
+            res.status(200).json({_id : bracelet._id});
+        }
+
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+}

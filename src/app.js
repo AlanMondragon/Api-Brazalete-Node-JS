@@ -7,6 +7,7 @@ const medicationRoutes = require('./routes/MedicationRoutes');
 const braceletRoutes = require('./routes/BraceletRouters')
 const reminderRouter = require('./routes/RedimerRouters')
 const emailRouter = require('./routes/passwordRoutes')
+const brazaletController = require('./controllers/BraceletController')
 const { loginUser } = require('./token/authController');
 const authMiddleware = require('./token/authMiddleware');
 
@@ -51,6 +52,12 @@ app.use('/api', authMiddleware(['keeper','admin']), braceletRoutes);
 
 // Para los recordatorios
 app.use('/api', authMiddleware(['keeper','admin']), reminderRouter);
+
+// Obtener el ultimo id
+app.get('/brazalet/lastId', brazaletController.getLastId);
+
+//Compartat ID
+app.get('/brazalet/shareId/:id', brazaletController.shareId);
 
 // Ruta de prueba (pública)
 app.get('/', (req, res) => {
