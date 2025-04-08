@@ -36,6 +36,10 @@ async function updateTimes(id, tiempo) {
       { new: true } 
     );
   
+    if (!reminder) {
+      throw new Error("Reminder no encontrado"); 
+    }
+
     if(reminder.timeout === null){
       const listeerreminder = await ListenerReminder.updateOne({
         id_reminder : id,
@@ -59,10 +63,6 @@ async function updateTimes(id, tiempo) {
 
     await newListener.save();
     }
-
-    if (!reminder) {
-      throw new Error("Reminder no encontrado"); 
-    }
   
     console.log("Reminder actualizado:", reminder);
     return reminder;
@@ -85,9 +85,8 @@ client.on("message", async (topic, message) => {
     console.log("ID Pulsera:", id_pulsera);
 
     // Llamar a la función de actualización
-    await updateTimes(id_pulsera, time)( () => {
-      console.log("se logro xddd")
-    });
+    await updateTimes(id_pulsera, time);
+    console.log("Tiempo actualizado exitosamente");
   } catch (error) {
     console.error("Error al procesar mensaje MQTT:", error);
   }
@@ -160,7 +159,7 @@ exports.createReminder = async (req, res) => {
       total_tomas: totalTomas
     });
     
-    const topic = MQTT_TOPIC + reminderWithMed.id_pulsera;
+    const topic = MQTT_TOPIC + "/" + reminderWithMed.id_pulsera;
 
     client.publish(topic, message, { qos: 1 }, (err) => {
       if (err) {
@@ -168,6 +167,7 @@ exports.createReminder = async (req, res) => {
         // Considera registrar el error pero no fallar la operación completa
       } else {
         console.log("✅ Mensaje MQTT enviado:", message);
+        console.log("Tema:", topic);
       }
     });
 
