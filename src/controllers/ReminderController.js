@@ -77,15 +77,20 @@ client.on("message", async (topic, message) => {
   try {
     console.log(`Mensaje recibido en ${topic}:`, message.toString());
 
-    const id_pulsera = topic.substring(18);
+    // Extraer los IDs del topic
+    const parts = topic.split('/');
+    const id_pulsera = parts[2];
+    const id_reminder = parts[3]; 
     const fullMessage = message.toString();
     const time = fullMessage.substring(5);
 
     console.log("Tiempo en segundos:", time);
     console.log("ID Pulsera:", id_pulsera);
+    console.log("ID Recordatorio:", id_reminder);
+    console.log("Topic:", topic);
 
     // Llamar a la función de actualización
-    await updateTimes(id_pulsera, time);
+    await updateTimes(id_reminder, time);
     console.log("Tiempo actualizado exitosamente");
   } catch (error) {
     console.error("Error al procesar mensaje MQTT:", error);
