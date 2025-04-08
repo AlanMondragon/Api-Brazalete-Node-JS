@@ -25,9 +25,22 @@ client.subscribe("reminders/confirm/#", (err) => {
   }
 });
 
+// Suscribirse al canal de desactivación
+client.subscribe("reminders/desactive/#", (err) => {
+  if (err) {
+    console.error("Error al suscribirse al tema de desactivación MQTT");
+  } else {
+    console.log("Suscrito a reminders/desactive");
+  }
+});
+
 async function updateTimes(id, tiempo) {
   const timeWait = parseInt(tiempo)
   try {
+    console.log("=== Inicio de updateTimes ===");
+    console.log("ID del recordatorio:", id);
+    console.log("Tiempo a actualizar:", timeWait);
+
     const reminder = await Reminder.findByIdAndUpdate(
       id,
       {
@@ -40,35 +53,60 @@ async function updateTimes(id, tiempo) {
       throw new Error("Reminder no encontrado"); 
     }
 
-    if(reminder.timeout === null){
-      const listeerreminder = await ListenerReminder.updateOne({
-        id_reminder : id,
-      },
-        {
-          $set: { timeout: timeWait }
-        },
-        { new: true } 
-      );
-    }else {
-      
-    // Crear y guardar el listener
-    const newListener = new ListenerReminder({
-      inicio: reminder.inicio,
-      fin: reminder.fin,
-      id_reminder: reminder._id,
-      nombre_paciente: reminder.nombre_paciente,
-      cronico: reminder.cronico,
-      timeout: reminder.timeout,
+    console.log("Reminder actualizado:", reminder);
+
+    // Buscar si ya existe un ListenerReminder para este recordatorio
+    const existingListener = await ListenerReminder.findOne({
+      id_reminder: id,
+      timeout: { $exists: true }
     });
 
-    await newListener.save();
+
+    if (existingListener) {
+      // Si existe, actualizarlo
+      await ListenerReminder.updateOne(
+        { _id: existingListener._id },
+        { $set: { timeout: timeWait } }
+      );
+    } else {
+      // Si no existe, crear uno nuevo
+      const newListener = new ListenerReminder({
+        inicio: reminder.inicio,
+        fin: reminder.fin,
+        id_reminder: reminder._id,
+        nombre_paciente: reminder.nombre_paciente,
+        cronico: reminder.cronico,
+        timeout: reminder.timeout,
+      });
+      await newListener.save();
+      console.log("Nuevo Listener creado:", newListener);
     }
   
-    console.log("Reminder actualizado:", reminder);
     return reminder;
   } catch (error) {
     console.error("Error al actualizar el reminder:", error.message);
     throw error; 
+  }
+}
+
+// Función para desactivar un recordatorio
+async function deactivateReminderById(id) {
+  try {
+    const reminder = await Reminder.findByIdAndUpdate(
+      id,
+      { edo: false },
+      { new: true }
+    );
+
+    if (!reminder) {
+      throw new Error("Reminder no encontrado");
+    }
+
+    console.log("Recordatorio desactivado:", reminder);
+    return reminder;
+  } catch (error) {
+    console.error("Error al desactivar el reminder:", error.message);
+    throw error;
   }
 }
 
@@ -77,21 +115,32 @@ client.on("message", async (topic, message) => {
   try {
     console.log(`Mensaje recibido en ${topic}:`, message.toString());
 
-    // Extraer los IDs del topic
-    const parts = topic.split('/');
-    const id_pulsera = parts[2];
-    const id_reminder = parts[3]; 
-    const fullMessage = message.toString();
-    const time = fullMessage.substring(5);
+    // Manejar mensajes de confirmación
+    if (topic.startsWith("reminders/confirm/")) {
+      const parts = topic.split('/');
+      const id_pulsera = parts[2];
+      const id_reminder = parts[3]; 
+      const fullMessage = message.toString();
+      const time = fullMessage.substring(5);
 
-    console.log("Tiempo en segundos:", time);
-    console.log("ID Pulsera:", id_pulsera);
-    console.log("ID Recordatorio:", id_reminder);
-    console.log("Topic:", topic);
+      console.log("Tiempo en segundos:", time);
+      console.log("ID Pulsera:", id_pulsera);
+      console.log("ID Recordatorio:", id_reminder);
+      console.log("Topic:", topic);
 
-    // Llamar a la función de actualización
-    await updateTimes(id_reminder, time);
-    console.log("Tiempo actualizado exitosamente");
+      await updateTimes(id_reminder, time);
+    }
+    // Manejar mensajes de desactivación
+    else if (topic.startsWith("reminders/desactive/")) {
+      const parts = topic.split('/');
+      const id_pulsera = parts[2];
+      const id_reminder = parts[3];
+
+      console.log("Desactivando recordatorio - ID Pulsera:", id_pulsera);
+      console.log("ID Recordatorio a desactivar:", id_reminder);
+
+      await deactivateReminderById(id_reminder);
+    }
   } catch (error) {
     console.error("Error al procesar mensaje MQTT:", error);
   }
@@ -100,7 +149,6 @@ client.on("message", async (topic, message) => {
 //Creacion de recordatorios
 exports.createReminder = async (req, res) => {
   try {
-
     // Crear y guardar el reminder
     const reminder = new Reminder({
       ...req.body,
@@ -108,18 +156,26 @@ exports.createReminder = async (req, res) => {
     });
     await reminder.save();
 
-    console.log(reminder._id)
-
-    // Crear y guardar el listener
-    const newListener = new ListenerReminder({
-      inicio: reminder.inicio,
-      fin: reminder.fin,
-      id_reminder: reminder._id,
-      nombre_paciente: reminder.nombre_paciente,
-      cronico: reminder.cronico,
-      timeout: reminder.timeout,
+    // Verificar si ya existe un ListenerReminder para este recordatorio
+    const existingListener = await ListenerReminder.findOne({
+      id_reminder: reminder._id
     });
-    await newListener.save();
+
+    if (!existingListener) {
+      // Crear y guardar el listener solo si no existe
+      const newListener = new ListenerReminder({
+        inicio: reminder.inicio,
+        fin: reminder.fin,
+        id_reminder: reminder._id,
+        nombre_paciente: reminder.nombre_paciente,
+        cronico: reminder.cronico,
+        timeout: reminder.timeout,
+      });
+      await newListener.save();
+      console.log("ListenerReminder creado:", newListener);
+    } else {
+      console.log("Ya existe un ListenerReminder para este recordatorio:", existingListener);
+    }
 
     // Obtener datos completos del reminder con medicamento
     const [reminderWithMed] = await Reminder.aggregate([
@@ -169,7 +225,6 @@ exports.createReminder = async (req, res) => {
     client.publish(topic, message, { qos: 1 }, (err) => {
       if (err) {
         console.error("❌ Error al publicar en MQTT:", err);
-        // Considera registrar el error pero no fallar la operación completa
       } else {
         console.log("✅ Mensaje MQTT enviado:", message);
         console.log("Tema:", topic);
@@ -181,7 +236,7 @@ exports.createReminder = async (req, res) => {
       total_tomas: totalTomas
     });
 
-    console.log(newListener)
+    console.log("=== Fin de creación de recordatorio ===");
 
   } catch (error) {
     console.error("Error en createReminder:", error);
@@ -196,9 +251,22 @@ exports.getHistoryReminderByIdReminder = async (req, res) =>{
     const listenerReminders = await ListenerReminder.find({
       id_reminder: id,
       timeout: { $exists: true } 
-    });
+    }).sort({ createdAt: -1 }); // Ordenar por fecha de creación descendente
 
-    res.status(200).json(listenerReminders)
+    // Eliminar duplicados basados en id_reminder y timeout
+    const uniqueReminders = listenerReminders.reduce((acc, current) => {
+      const x = acc.find(item => 
+        item.id_reminder === current.id_reminder && 
+        item.timeout === current.timeout
+      );
+      if (!x) {
+        return acc.concat([current]);
+      } else {
+        return acc;
+      }
+    }, []);
+
+    res.status(200).json(uniqueReminders)
 
   } catch (error) {
     res.status(400).json({ error : error.message })
@@ -360,7 +428,8 @@ exports.getRemindersDeactivatedByUserId = async (req, res) => {
           "usuario.rol": 1,
           inicio: 1,
           fin: 1,
-          cronico: 1
+          cronico: 1,
+          edo : 1
         }
       }
     ]);
@@ -528,8 +597,9 @@ exports.updateReminder = async (req, res) => {
 
       res.status(200).json(reminder);
 
-      const topic = MQTT_TOPIC + reminder.id_pulsera;
-      const message = reminder;
+      const topic = MQTT_TOPIC + "/" + reminder.id_pulsera ;
+      const key = "update";
+      const message = reminder + key;
 
       client.publish(topic, message, { qos: 1 }, (err) => {
           if (err) {
