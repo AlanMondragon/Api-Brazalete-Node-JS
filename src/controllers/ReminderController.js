@@ -53,35 +53,20 @@ async function updateTimes(id, tiempo) {
       throw new Error("Reminder no encontrado"); 
     }
 
-    console.log("Reminder actualizado:", reminder);
-
-    // Buscar si ya existe un ListenerReminder para este recordatorio
-    const existingListener = await ListenerReminder.findOne({
-      id_reminder: id,
-      timeout: { $exists: true }
+    // Siempre crear un nuevo ListenerReminder para mantener el historial
+    const newListener = new ListenerReminder({
+      inicio: reminder.inicio,
+      fin: reminder.fin,
+      id_reminder: reminder._id,
+      nombre_paciente: reminder.nombre_paciente,
+      cronico: reminder.cronico,
+      timeout: timeWait,
     });
 
-
-    if (existingListener) {
-      // Si existe, actualizarlo
-      await ListenerReminder.updateOne(
-        { _id: existingListener._id },
-        { $set: { timeout: timeWait } }
-      );
-    } else {
-      // Si no existe, crear uno nuevo
-      const newListener = new ListenerReminder({
-        inicio: reminder.inicio,
-        fin: reminder.fin,
-        id_reminder: reminder._id,
-        nombre_paciente: reminder.nombre_paciente,
-        cronico: reminder.cronico,
-        timeout: reminder.timeout,
-      });
-      await newListener.save();
-      console.log("Nuevo Listener creado:", newListener);
-    }
+    await newListener.save();
+    console.log("Nuevo registro de historial creado:", newListener);
   
+    console.log("Reminder actualizado:", reminder);
     return reminder;
   } catch (error) {
     console.error("Error al actualizar el reminder:", error.message);
