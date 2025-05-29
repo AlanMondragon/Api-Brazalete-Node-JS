@@ -153,9 +153,8 @@ exports.createReminder = async (req, res) => {
         fin: reminder.fin,
         id_reminder: reminder._id,
         nombre_paciente: reminder.nombre_paciente,
-        cronico: reminder.cronico,
-        timeout: reminder.timeout,
-      });
+        cronico: reminder.cronico
+        });
       await newListener.save();
       console.log("ListenerReminder creado:", newListener);
     } else {
@@ -221,7 +220,6 @@ exports.createReminder = async (req, res) => {
       total_tomas: totalTomas
     });
 
-    console.log("=== Fin de creación de recordatorio ===");
 
   } catch (error) {
     console.error("Error en createReminder:", error);
@@ -355,7 +353,8 @@ exports.getRemindersWithDetails = async (req, res) => {
             "usuario.rol": 1,
             inicio: 1,
             fin: 1,
-            cronico: 1
+            cronico: 1,
+            time : 1
           }
         }
       ]);
@@ -610,6 +609,20 @@ exports.deactivateReminder = async (req, res) => {
         if (!reminder) {
             return res.status(404).json({ error: 'Recordatorio no encontrado' });
         }
+
+        // Publicar mensaje MQTT en el nuevo canal
+        const topic = `notify/api/desactive/${reminder.id_pulsera}/${reminder._id}`;
+        const message = "desactivado"
+
+        client.publish(topic, message, { qos: 1 }, (err) => {
+            if (err) {
+                console.error("❌ Error al publicar en MQTT:", err);
+            } else {
+                console.log("✅ Mensaje de desactivación MQTT enviado:", message);
+                console.log("Tema:", topic);
+            }
+        });
+
         res.status(200).json({ message: 'Recordatorio desactivado correctamente', reminder });
     } catch (error) {
         res.status(500).json({ error: error.message });

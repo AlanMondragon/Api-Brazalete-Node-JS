@@ -4,10 +4,10 @@ const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 const userRoutes = require('./routes/userRoutes');
 const medicationRoutes = require('./routes/MedicationRoutes');
-const braceletRoutes = require('./routes/BraceletRouters')
-const reminderRouter = require('./routes/RedimerRouters')
-const emailRouter = require('./routes/passwordRoutes')
-const brazaletController = require('./controllers/BraceletController')
+const braceletRoutes = require('./routes/BraceletRouters');
+const reminderRouter = require('./routes/RedimerRouters');
+const emailRouter = require('./routes/passwordRoutes');
+const brazaletController = require('./controllers/BraceletController');
 const { loginUser } = require('./token/authController');
 const authMiddleware = require('./token/authMiddleware');
 
@@ -15,7 +15,20 @@ const authMiddleware = require('./token/authMiddleware');
 dotenv.config();
 const app = express();      
 const port = process.env.PORT || 3000;
-app.use(cors());
+
+// Configuración de CORS
+const corsOptions = {
+  origin: ['http://localhost:5173', 'https://staging.d2xulwst5g6kpq.amplifyapp.com'], 
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true 
+};
+
+// Uso de CORS con las opciones configuradas
+app.use(cors(corsOptions));
+
+app.options('*', cors()); // Permitir todas las solicitudes OPTIONS
+
 
 // Middleware para parsear JSON
 app.use(express.json());
